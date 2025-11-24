@@ -21,10 +21,19 @@
                 <div class="lobby-left">
                     <h1>H5 2D 游戏</h1>
                     <div id="gold-display">金币: 0</div>
-                    <div id="reiki-display">灵气: 0</div>
+                    <div id="reiki-display" style="display: none;">灵气: 0</div>
+                    <div id="exp-display">经验: 0</div>
+                    <div id="next-level-exp-display">下阶所需: 0</div>
+                    
+                    <div style="margin: 10px 0; display: flex; gap: 5px;">
+                        <input type="number" id="test-exp-input" placeholder="输入经验" style="width: 80px; padding: 5px;">
+                        <button id="test-add-exp-btn" style="background-color: #2196F3; padding: 5px 10px;">增加经验(测试)</button>
+                    </div>
+
                     <button id="start-btn">开始游戏</button>
                     <button id="upgrade-btn" style="background-color: #9C27B0;">修炼</button>
                     <button id="weapon-btn" style="background-color: #FF5722;">武器库</button>
+                    <button id="clear-data-btn" style="background-color: #607D8B; margin-top: 10px;">清除存档 (测试)</button>
                 </div>
                 <div class="lobby-right">
                     <!-- Player preview will be drawn on canvas behind here -->

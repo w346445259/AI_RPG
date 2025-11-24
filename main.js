@@ -18,12 +18,19 @@ const continueBtn = document.getElementById('continue-btn');
 const victoryLobbyBtn = document.getElementById('victory-lobby-btn');
 const goldDisplay = document.getElementById('gold-display');
 const reikiDisplay = document.getElementById('reiki-display');
+const expDisplay = document.getElementById('exp-display');
+const nextLevelExpDisplay = document.getElementById('next-level-exp-display');
 const lossGoldDisplay = document.getElementById('loss-gold-display');
 const winGoldDisplay = document.getElementById('win-gold-display');
+
+// 测试 UI 元素
+const testExpInput = document.getElementById('test-exp-input');
+const testAddExpBtn = document.getElementById('test-add-exp-btn');
 
 // 强化 UI 元素
 const upgradeScreen = document.getElementById('upgrade-screen');
 const upgradeBtn = document.getElementById('upgrade-btn');
+const clearDataBtn = document.getElementById('clear-data-btn');
 const btnBackLobby = document.getElementById('btn-back-lobby');
 
 // 凡人阶段 UI
@@ -59,16 +66,80 @@ function showNotification(message) {
     }, 3000);
 }
 
+// 辅助函数：获取各阶段所需的累计经验阈值
+function getExpThresholds() {
+    const thresholds = {};
+    let acc = 0;
+    
+    // Stage 1 (凡人 -> 锻体1阶)
+    acc += realmBaseConfig[1].cost; // 20
+    thresholds[1] = acc;
+
+    // Stage 2 to 9 (锻体期各阶)
+    for (let i = 2; i <= 9; i++) {
+        acc += bodyRefiningConfig.getCost(i);
+        thresholds[i] = acc;
+    }
+
+    // Stage 10 (锻体 -> 筑基)
+    acc += realmBaseConfig[10].cost;
+    thresholds[10] = acc;
+
+    return thresholds;
+}
+
+// 根据当前总经验计算应该处于的境界
+function calculateStageFromExp(exp) {
+    const thresholds = getExpThresholds();
+    let stage = 0;
+    
+    // 检查是否达到各阶段阈值
+    for (let i = 1; i <= 10; i++) {
+        if (exp >= thresholds[i]) {
+            stage = i;
+        } else {
+            break;
+        }
+    }
+    return stage;
+}
+
+// 更新经验和境界
+function addExperience(amount) {
+    totalExp += amount;
+    const oldStage = cultivationStage;
+    cultivationStage = calculateStageFromExp(totalExp);
+    
+    localStorage.setItem('totalExp', totalExp);
+    localStorage.setItem('cultivationStage', cultivationStage);
+    
+    if (cultivationStage > oldStage) {
+        showNotification(`境界提升！当前境界: ${getStageName(cultivationStage)}`);
+    }
+    
+    updateCultivationUI();
+    updatePlayerStatsDisplay();
+}
+
+function getStageName(stage) {
+    if (stage === 0) return "凡人";
+    if (stage >= 1 && stage <= 9) return `锻体期 ${stage}阶`;
+    if (stage >= 10) return "筑基期";
+    return "未知";
+}
+
 function updateCultivationUI() {
     updateGoldDisplay();
 
     // 更新修炼界面的灵气显示
     const cultivationReikiDisplay = document.getElementById('cultivation-reiki-display');
     if (cultivationReikiDisplay) {
-        cultivationReikiDisplay.textContent = `当前灵气: ${totalReiki}`;
+        cultivationReikiDisplay.textContent = `当前经验: ${totalExp}`;
     }
 
     // 凡人阶段逻辑
+    const thresholds = getExpThresholds();
+    
     if (cultivationStage > 0) {
         mortalProcessDiv.classList.add('hidden');
         mortalCompletedDiv.classList.remove('hidden');
@@ -76,14 +147,17 @@ function updateCultivationUI() {
         mortalProcessDiv.classList.remove('hidden');
         mortalCompletedDiv.classList.add('hidden');
         
-        const cost = realmBaseConfig[1].cost;
-        if (totalReiki >= cost) {
-            btnBreakthroughMortal.disabled = false;
-            btnBreakthroughMortal.textContent = `感应天地 (消耗: ${cost} 灵气)`;
-        } else {
-            btnBreakthroughMortal.disabled = true;
-            btnBreakthroughMortal.textContent = `灵气不足 (需 ${cost})`;
-        }
+        const cost = thresholds[1];
+        // 移除按钮，改为显示进度
+        mortalProcessDiv.innerHTML = `
+            <h2>凡人阶段</h2>
+            <p>肉体凡胎，未入仙途。</p>
+            <p>本阶进度: ${totalExp} / ${cost}</p>
+            <div style="width: 100%; background: #555; height: 10px; border-radius: 5px; margin-top: 5px;">
+                <div style="width: ${Math.min(100, (totalExp / cost) * 100)}%; background: #FF9800; height: 100%; border-radius: 5px;"></div>
+            </div>
+            <p>${totalExp >= cost ? '已达标 (自动突破)' : '经验不足'}</p>
+        `;
     }
 
     // 锻体阶段逻辑
@@ -124,6 +198,7 @@ function updateBodyRefiningUI() {
     const currentTier = cultivationStage;
     const maxTier = bodyRefiningConfig.maxTier || 9;
     const baseStats = realmBaseConfig[1].stats;
+    const thresholds = getExpThresholds();
 
     // 辅助函数：计算总属性
     const getTotalStats = (tierStats) => {
@@ -161,81 +236,56 @@ function updateBodyRefiningUI() {
     if (nextTier <= maxTier) {
         const nextTierStats = bodyRefiningConfig.tiers[nextTier];
         const nextTotal = getTotalStats(nextTierStats);
-        const cost = bodyRefiningConfig.getCost(nextTier);
-        const canAfford = totalReiki >= cost;
+        const requiredExp = thresholds[nextTier];
+        
+        const prevThreshold = thresholds[currentTier];
+        const currentStageExp = Math.max(0, totalExp - prevThreshold);
+        const stageTotalCost = requiredExp - prevThreshold;
+        const percentage = Math.min(100, Math.max(0, (currentStageExp / stageTotalCost) * 100));
 
         html += `
             <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
                 <h3>下一阶: 第 ${nextTier} 阶</h3>
                 <p>升级后累计属性: 攻击 +${nextTotal.damage}, 生命 +${nextTotal.maxHp}, 防御 +${nextTotal.defense}</p>
-                <p>消耗灵气: ${cost}</p>
-                <button id="btn-breakthrough-body" style="background-color: #FF5722; margin-top: 10px;" ${canAfford ? '' : 'disabled'}>
-                    ${canAfford ? '突破瓶颈' : '灵气不足'}
-                </button>
+                <p>本阶进度: ${currentStageExp} / ${stageTotalCost}</p>
+                <div style="width: 100%; background: #555; height: 10px; border-radius: 5px; margin-top: 5px;">
+                    <div style="width: ${percentage}%; background: #FF5722; height: 100%; border-radius: 5px;"></div>
+                </div>
             </div>
         `;
     } else {
         // 锻体9阶，准备筑基
         const foundationConfig = realmBaseConfig[10];
-        const cost = foundationConfig.cost;
-        const canAfford = totalReiki >= cost;
+        const requiredExp = thresholds[10];
         const bonus = foundationConfig.stats;
+
+        const prevThreshold = thresholds[9];
+        const currentStageExp = Math.max(0, totalExp - prevThreshold);
+        const stageTotalCost = requiredExp - prevThreshold;
+        const percentage = Math.min(100, Math.max(0, (currentStageExp / stageTotalCost) * 100));
 
         html += `
             <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; border: 1px solid gold;">
                 <h3 style="color: gold;">突破: 筑基期</h3>
                 <p>筑大道之基，脱胎换骨。</p>
                 <p>筑基加成: 攻击 +${bonus.damage}, 生命 +${bonus.maxHp}, 防御 +${bonus.defense}</p>
-                <p>消耗灵气: ${cost}</p>
-                <button id="btn-breakthrough-foundation" style="background-color: gold; color: black; margin-top: 10px; font-weight: bold;" ${canAfford ? '' : 'disabled'}>
-                    ${canAfford ? '筑基' : '灵气不足'}
-                </button>
+                <p>本阶进度: ${currentStageExp} / ${stageTotalCost}</p>
+                <div style="width: 100%; background: #555; height: 10px; border-radius: 5px; margin-top: 5px;">
+                    <div style="width: ${percentage}%; background: gold; height: 100%; border-radius: 5px;"></div>
+                </div>
             </div>
         `;
     }
 
     contentBodyRefining.innerHTML = html;
-
-    // 绑定按钮事件
-    const btnBreakthroughBody = document.getElementById('btn-breakthrough-body');
-    if (btnBreakthroughBody) {
-        btnBreakthroughBody.addEventListener('click', () => {
-            const cost = bodyRefiningConfig.getCost(nextTier);
-            if (totalReiki >= cost) {
-                totalReiki -= cost;
-                cultivationStage = nextTier;
-                localStorage.setItem('totalReiki', totalReiki);
-                localStorage.setItem('cultivationStage', cultivationStage);
-                updateCultivationUI();
-                updatePlayerStatsDisplay(); // 更新大厅属性面板
-                showNotification(`突破成功！晋升为 锻体期 第 ${cultivationStage} 阶！`);
-            }
-        });
-    }
-
-    const btnBreakthroughFoundation = document.getElementById('btn-breakthrough-foundation');
-    if (btnBreakthroughFoundation) {
-        btnBreakthroughFoundation.addEventListener('click', () => {
-            const cost = realmBaseConfig[10].cost;
-            if (totalReiki >= cost) {
-                totalReiki -= cost;
-                cultivationStage = 10; // 进入筑基期 (Stage 10)
-                localStorage.setItem('totalReiki', totalReiki);
-                localStorage.setItem('cultivationStage', cultivationStage);
-                updateCultivationUI();
-                updatePlayerStatsDisplay();
-                showNotification("恭喜道友！筑基成功，大道可期！");
-            }
-        });
-    }
 }
 
 btnBreakthroughMortal.addEventListener('click', () => {
     const cost = realmBaseConfig[1].cost;
-    if (cultivationStage === 0 && totalReiki >= cost) {
-        totalReiki -= cost;
+    if (cultivationStage === 0 && totalExp >= cost) {
+        totalExp -= cost;
         cultivationStage = 1; // 进入锻体期 1阶
-        localStorage.setItem('totalReiki', totalReiki);
+        localStorage.setItem('totalExp', totalExp);
         localStorage.setItem('cultivationStage', cultivationStage);
         updateCultivationUI();
         updatePlayerStatsDisplay(); // 更新大厅属性面板
@@ -292,6 +342,12 @@ if (localStorage.getItem('totalReiki') !== null) {
     totalReiki = parseInt(localStorage.getItem('totalReiki'));
 } else {
     totalReiki = playerConfig.initialReiki || 0;
+}
+let totalExp;
+if (localStorage.getItem('totalExp') !== null) {
+    totalExp = parseInt(localStorage.getItem('totalExp'));
+} else {
+    totalExp = 0;
 }
 let cultivationStage = parseInt(localStorage.getItem('cultivationStage')) || 0; // 0: 凡人, 1: 锻体, ...
 let sessionGold = 0; // 本局获得金币
@@ -392,6 +448,35 @@ function initGame() {
 function updateGoldDisplay() {
     goldDisplay.textContent = `金币: ${totalGold}`;
     reikiDisplay.textContent = `灵气: ${totalReiki}`;
+    if (expDisplay) expDisplay.textContent = `经验: ${totalExp}`;
+
+    if (nextLevelExpDisplay) {
+        const thresholds = getExpThresholds();
+        let nextCost = 0;
+        let currentStageExp = 0;
+        let stageTotalCost = 0;
+        
+        if (cultivationStage === 0) {
+            nextCost = thresholds[1];
+            currentStageExp = totalExp;
+            stageTotalCost = nextCost;
+            nextLevelExpDisplay.textContent = `本阶进度: ${currentStageExp} / ${stageTotalCost} (凡人 -> 锻体)`;
+        } else if (cultivationStage >= 1 && cultivationStage < 9) {
+            const prevThreshold = thresholds[cultivationStage];
+            nextCost = thresholds[cultivationStage + 1];
+            currentStageExp = Math.max(0, totalExp - prevThreshold);
+            stageTotalCost = nextCost - prevThreshold;
+            nextLevelExpDisplay.textContent = `本阶进度: ${currentStageExp} / ${stageTotalCost} (锻体 ${cultivationStage} -> ${cultivationStage + 1})`;
+        } else if (cultivationStage === 9) {
+            const prevThreshold = thresholds[9];
+            nextCost = thresholds[10];
+            currentStageExp = Math.max(0, totalExp - prevThreshold);
+            stageTotalCost = nextCost - prevThreshold;
+            nextLevelExpDisplay.textContent = `本阶进度: ${currentStageExp} / ${stageTotalCost} (锻体 -> 筑基)`;
+        } else {
+            nextLevelExpDisplay.textContent = `已达当前版本上限`;
+        }
+    }
 }
 
 function updatePlayerStatsDisplay() {
@@ -447,6 +532,19 @@ window.equipWeapon = (id) => {
     updatePlayerStatsDisplay();
 };
 
+if (testAddExpBtn) {
+    testAddExpBtn.addEventListener('click', () => {
+        const amount = parseInt(testExpInput.value);
+        if (!isNaN(amount) && amount > 0) {
+            addExperience(amount);
+            showNotification(`测试: 增加了 ${amount} 经验`);
+            testExpInput.value = '';
+        } else {
+            showNotification('请输入有效的经验数值');
+        }
+    });
+}
+
 // UI 事件监听器
 startBtn.addEventListener('click', () => {
     initGame();
@@ -481,6 +579,15 @@ weaponBtn.addEventListener('click', () => {
     weaponScreen.classList.remove('hidden');
     updateWeaponUI();
 });
+
+if (clearDataBtn) {
+    clearDataBtn.addEventListener('click', () => {
+        if (confirm('确定要清除所有存档数据吗？这将重置游戏进度！')) {
+            localStorage.clear();
+            location.reload();
+        }
+    });
+}
 
 btnBackLobby.addEventListener('click', () => {
     gameState = 'LOBBY';
@@ -844,8 +951,12 @@ function handleBulletHit(bullet, monster, bulletIndex) {
                 // 存储金币
                 totalGold += sessionGold;
                 localStorage.setItem('totalGold', totalGold);
+
+                // 奖励经验
+                const winExp = config.winExp || 0;
+                addExperience(winExp);
                 
-                winGoldDisplay.textContent = `获得金币: ${sessionGold}`;
+                winGoldDisplay.textContent = `获得金币: ${sessionGold} | 获得经验: ${winExp}`;
                 
                 const victoryTitle = document.querySelector('#victory-screen h1');
                 const continueBtn = document.getElementById('continue-btn');
