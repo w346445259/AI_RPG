@@ -6,7 +6,7 @@ import { weaponConfig } from './config/weaponConfig.js';
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// UI Elements
+// UI 元素
 const startScreen = document.getElementById('start-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
 const victoryScreen = document.getElementById('victory-screen');
@@ -19,13 +19,13 @@ const goldDisplay = document.getElementById('gold-display');
 const lossGoldDisplay = document.getElementById('loss-gold-display');
 const winGoldDisplay = document.getElementById('win-gold-display');
 
-// Upgrade UI Elements
+// 强化 UI 元素
 const upgradeScreen = document.getElementById('upgrade-screen');
 const upgradeBtn = document.getElementById('upgrade-btn');
 const btnBackLobby = document.getElementById('btn-back-lobby');
 const upgradeGoldDisplay = document.getElementById('upgrade-gold-display');
 
-// Weapon UI Elements
+// 武器 UI 元素
 const weaponScreen = document.getElementById('weapon-screen');
 const weaponBtn = document.getElementById('weapon-btn');
 const btnWeaponBackLobby = document.getElementById('btn-weapon-back-lobby');
@@ -43,7 +43,7 @@ const hpNextSpan = document.getElementById('hp-next');
 const hpCostSpan = document.getElementById('hp-cost');
 const btnUpgradeHp = document.getElementById('btn-upgrade-hp');
 
-// Pause UI Elements
+// 暂停 UI 元素
 const pauseBtn = document.getElementById('pause-btn');
 const pauseScreen = document.getElementById('pause-screen');
 const resumeBtn = document.getElementById('resume-btn');
@@ -55,11 +55,11 @@ const confirmQuitNo = document.getElementById('confirm-quit-no');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Game State
-let gameState = 'LOBBY'; // LOBBY, PLAYING, GAMEOVER, VICTORY, UPGRADE, WEAPON, PAUSED
+// 游戏状态
+let gameState = 'LOBBY'; // LOBBY (大厅), PLAYING (游戏中), GAMEOVER (游戏结束), VICTORY (胜利), UPGRADE (强化), WEAPON (武器库), PAUSED (暂停)
 
 let totalGold = parseInt(localStorage.getItem('totalGold')) || 0;
-let sessionGold = 0; // Gold earned in current session
+let sessionGold = 0; // 本局获得金币
 let attackLevel = parseInt(localStorage.getItem('attackLevel')) || 0;
 let hpLevel = parseInt(localStorage.getItem('hpLevel')) || 0;
 let equippedWeaponId = parseInt(localStorage.getItem('equippedWeaponId')) || 1;
@@ -76,7 +76,7 @@ function getPlayerStats() {
 }
 
 let player = {
-    x: canvas.width * 0.7, // Position for Lobby
+    x: canvas.width * 0.7, // 大厅中的位置
     y: canvas.height / 2,
     radius: playerConfig.radius,
     speed: playerConfig.speed,
@@ -95,7 +95,7 @@ let lastShotTime = 0;
 let lastSpawnTime = 0;
 let monsterIdCounter = 0;
 
-// Burst Fire State
+// 连发状态
 let burstShotsRemaining = 0;
 let lastBurstTime = 0;
 let burstTargetId = null;
@@ -117,7 +117,7 @@ function initGame() {
     hasWon = false;
     currentLevel = 1;
     
-    // Reset burst state
+    // 重置连发状态
     burstShotsRemaining = 0;
     lastBurstTime = 0;
     burstTargetId = null;
@@ -135,7 +135,7 @@ function updateGoldDisplay() {
 function updateUpgradeUI() {
     updateGoldDisplay();
 
-    // Attack UI
+    // 攻击力 UI
     atkLevelSpan.textContent = attackLevel;
     const currentAtk = playerConfig.damage + attackLevel * 1;
     atkValSpan.textContent = currentAtk;
@@ -147,14 +147,14 @@ function updateUpgradeUI() {
         btnUpgradeAtk.textContent = "已满级";
     } else {
         const nextAtk = currentAtk + 1;
-        const cost = attackLevel + 1; // Cost = Next Level (e.g. 0->1 costs 1)
+        const cost = attackLevel + 1; // 消耗 = 下一级 (例如 0->1 消耗 1)
         atkNextSpan.textContent = nextAtk;
         atkCostSpan.textContent = cost;
         btnUpgradeAtk.disabled = totalGold < cost;
         btnUpgradeAtk.textContent = `升级 (消耗: ${cost})`;
     }
 
-    // HP UI
+    // 生命值 UI
     hpLevelSpan.textContent = hpLevel;
     const currentHp = playerConfig.maxHp + hpLevel * 2;
     hpValSpan.textContent = currentHp;
@@ -205,14 +205,14 @@ function updateWeaponUI() {
     }
 }
 
-// Expose equip function to window for onclick
+// 将装备函数暴露给 window 以便 onclick 调用
 window.equipWeapon = (id) => {
     equippedWeaponId = id;
     localStorage.setItem('equippedWeaponId', id);
     updateWeaponUI();
 };
 
-// UI Event Listeners
+// UI 事件监听器
 startBtn.addEventListener('click', () => {
     initGame();
     gameState = 'PLAYING';
@@ -239,7 +239,7 @@ btnBackLobby.addEventListener('click', () => {
     upgradeScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
     
-    // Update player preview stats
+    // 更新玩家预览属性
     const stats = getPlayerStats();
     player.maxHp = stats.maxHp;
     player.hp = stats.maxHp;
@@ -273,7 +273,7 @@ btnUpgradeHp.addEventListener('click', () => {
     }
 });
 
-// Initialize gold display on load
+// 加载时初始化金币显示
 updateGoldDisplay();
 
 restartBtn.addEventListener('click', () => {
@@ -290,7 +290,7 @@ restartBtn.addEventListener('click', () => {
     pauseBtn.classList.add('hidden');
     updateGoldDisplay();
     
-    // Reset player position for lobby
+    // 重置大厅玩家位置
     const stats = getPlayerStats();
     player.x = canvas.width * 0.7;
     player.y = canvas.height / 2;
@@ -307,13 +307,13 @@ continueBtn.addEventListener('click', () => {
         victoryScreen.classList.add('hidden');
         pauseBtn.classList.remove('hidden');
         
-        // Reset player position? Maybe keep it.
-        // Clear monsters?
+        // 重置玩家位置？也许保留。
+        // 清除怪物？
         monsters = [];
         bullets = [];
         floatingTexts = [];
     } else {
-        // Endless or just continue
+        // 无尽模式或继续
         gameState = 'PLAYING';
         victoryScreen.classList.add('hidden');
         pauseBtn.classList.remove('hidden');
@@ -327,13 +327,13 @@ victoryLobbyBtn.addEventListener('click', () => {
     pauseBtn.classList.add('hidden');
     updateGoldDisplay();
 
-    // Reset player position for lobby
+    // 重置大厅玩家位置
     const stats = getPlayerStats();
     player.x = canvas.width * 0.7;
     player.y = canvas.height / 2;
     player.hp = stats.maxHp;
     player.maxHp = stats.maxHp;
-});// Pause Logic
+});// 暂停逻辑
 function togglePause() {
     if (gameState === 'PLAYING') {
         gameState = 'PAUSED';
@@ -341,7 +341,7 @@ function togglePause() {
     } else if (gameState === 'PAUSED') {
         gameState = 'PLAYING';
         pauseScreen.classList.add('hidden');
-        confirmQuitModal.classList.add('hidden'); // Ensure modal is closed
+        confirmQuitModal.classList.add('hidden'); // 确保模态框关闭
     }
 }
 
@@ -367,11 +367,11 @@ confirmQuitYes.addEventListener('click', () => {
     startScreen.classList.remove('hidden');
     pauseBtn.classList.add('hidden');
     
-    // Reset game state but DO NOT save session gold
+    // 重置游戏状态但不保存本局金币
     sessionGold = 0;
     updateGoldDisplay();
     
-    // Reset player position for lobby
+    // 重置大厅玩家位置
     const stats = getPlayerStats();
     player.x = canvas.width * 0.7;
     player.y = canvas.height / 2;
@@ -379,7 +379,7 @@ confirmQuitYes.addEventListener('click', () => {
     player.maxHp = stats.maxHp;
 });
 
-// Input Handling
+// 输入处理
 window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         if (gameState === 'PLAYING' || gameState === 'PAUSED') {
@@ -402,7 +402,7 @@ window.addEventListener('resize', () => {
     }
 });
 
-// Game Logic
+// 游戏逻辑
 function update(timestamp) {
     if (gameState !== 'PLAYING') return;
 
@@ -420,13 +420,13 @@ function updatePlayerMovement() {
     if (keys['a']) player.x -= player.speed;
     if (keys['d']) player.x += player.speed;
 
-    // Keep player in bounds
+    // 保持玩家在边界内
     player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
     player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
 }
 
 function updateSpawning(timestamp) {
-    const config = levelConfig[currentLevel] || levelConfig[3]; // Fallback to level 3
+    const config = levelConfig[currentLevel] || levelConfig[3]; // 默认为第3关
     if (timestamp - lastSpawnTime > config.spawnRate) {
         spawnMonster();
         lastSpawnTime = timestamp;
@@ -434,7 +434,7 @@ function updateSpawning(timestamp) {
 }
 
 function updateShooting(timestamp) {
-    // Auto Shooting
+    // 自动射击
     const weapon = weaponConfig[equippedWeaponId];
     if (timestamp - lastShotTime > weapon.fireRate) {
         const target = getNearestMonster();
@@ -445,14 +445,14 @@ function updateShooting(timestamp) {
         }
     }
 
-    // Handle Burst Fire
+    // 处理连发
     if (burstShotsRemaining > 0) {
         const burstDelay = weapon.burstDelay || 100;
         if (timestamp - lastBurstTime > burstDelay) {
-            // Try to find the locked target
+            // 尝试找到锁定的目标
             let target = monsters.find(m => m.id === burstTargetId);
             
-            // If locked target is dead/gone, find a new nearest target
+            // 如果锁定目标死亡/消失，寻找新的最近目标
             if (!target) {
                 target = getNearestMonster();
                 if (target) {
@@ -465,7 +465,7 @@ function updateShooting(timestamp) {
                 burstShotsRemaining--;
                 lastBurstTime = timestamp;
             } else {
-                // No targets available at all
+                // 根本没有目标
                 burstShotsRemaining = 0;
             }
         }
@@ -485,39 +485,39 @@ function updateBullets() {
 }
 
 function updateBounceBullet(b, i) {
-    // Update Target Position if target is alive
+    // 如果目标存活，更新目标位置
     const target = monsters.find(m => m.id === b.targetId);
     if (target) {
         b.targetX = target.x;
         b.targetY = target.y;
     }
 
-    // Move towards targetX, targetY
+    // 向 targetX, targetY 移动
     const dx = b.targetX - b.x;
     const dy = b.targetY - b.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dist <= b.speed) {
-        // Reached destination
+        // 到达目的地
         b.x = b.targetX;
         b.y = b.targetY;
 
-        // Check if we hit the target
+        // 检查是否击中目标
         if (target) {
             handleBulletHit(b, target, i);
             
-            // Bounce Logic
+            // 弹射逻辑
             if (b.bounceCount > 0) {
                 b.bounceCount--;
                 b.hitIds.push(target.id);
                 
-                // Find new target
+                // 寻找新目标
                 const newTarget = getNearestMonsterExcluding(b.x, b.y, b.hitIds);
                 if (newTarget) {
                     b.targetId = newTarget.id;
                     b.targetX = newTarget.x;
                     b.targetY = newTarget.y;
-                    // Continue bullet life
+                    // 子弹继续存在
                 } else {
                     bullets.splice(i, 1);
                 }
@@ -525,11 +525,11 @@ function updateBounceBullet(b, i) {
                 bullets.splice(i, 1);
             }
         } else {
-            // Target was dead when we arrived
+            // 到达时目标已死亡
             bullets.splice(i, 1);
         }
     } else {
-        // Move
+        // 移动
         b.x += (dx / dist) * b.speed;
         b.y += (dy / dist) * b.speed;
     }
@@ -539,13 +539,13 @@ function updatePenetrateBullet(b, i) {
     b.x += b.vx;
     b.y += b.vy;
 
-    // Remove if out of bounds
+    // 如果超出边界则移除
     if (b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) {
         bullets.splice(i, 1);
         return;
     }
 
-    // Collision with Monsters
+    // 与怪物碰撞
     let bulletRemoved = false;
     for (let j = monsters.length - 1; j >= 0; j--) {
         const m = monsters[j];
@@ -554,17 +554,17 @@ function updatePenetrateBullet(b, i) {
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < m.radius + b.radius) {
-            if (b.hitIds.includes(m.id)) continue; // Already hit this monster
+            if (b.hitIds.includes(m.id)) continue; // 已经击中过该怪物
 
             handleBulletHit(b, m, i);
 
             if (b.penetration > 0) {
                 b.penetration--;
-                // Bullet continues
+                // 子弹继续
             } else {
-                bullets.splice(i, 1); // Remove bullet
+                bullets.splice(i, 1); // 移除子弹
                 bulletRemoved = true;
-                break; // Bullet hit something and died
+                break; // 子弹击中物体并消失
             }
         }
     }
@@ -577,18 +577,18 @@ function handleBulletHit(bullet, monster, bulletIndex) {
     if (monster.hp <= 0) {
         const mIndex = monsters.indexOf(monster);
         if (mIndex > -1) {
-            monsters.splice(mIndex, 1); // Remove monster
+            monsters.splice(mIndex, 1); // 移除怪物
             
-            // Random gold drop
+            // 随机掉落金币
             const goldDrop = Math.floor(Math.random() * (monster.goldMax - monster.goldMin + 1)) + monster.goldMin;
             sessionGold += goldDrop;
             
-            // Add floating text
+            // 添加浮动文字
             floatingTexts.push({
                 x: monster.x,
                 y: monster.y,
                 text: `+${goldDrop}`,
-                life: 1.0, // Seconds
+                life: 1.0, // 秒
                 color: 'gold'
             });
             
@@ -599,7 +599,7 @@ function handleBulletHit(bullet, monster, bulletIndex) {
                 hasWon = true;
                 gameState = 'VICTORY';
                 
-                // Bank the gold
+                // 存储金币
                 totalGold += sessionGold;
                 localStorage.setItem('totalGold', totalGold);
                 
@@ -634,9 +634,9 @@ function updateMonsters(timestamp) {
             m.y += (dy / dist) * m.speed;
         }
 
-        // Player Collision
+        // 玩家碰撞
         if (dist < player.radius + m.radius) {
-            if (timestamp - player.lastHitTime > 1000) { // 1 second invulnerability
+            if (timestamp - player.lastHitTime > 1000) { // 1秒无敌时间
                 player.hp -= m.damage;
                 player.lastHitTime = timestamp;
                 
@@ -653,8 +653,8 @@ function updateMonsters(timestamp) {
 function updateFloatingTexts() {
     for (let i = floatingTexts.length - 1; i >= 0; i--) {
         const ft = floatingTexts[i];
-        ft.life -= 0.016; // Approx 60fps
-        ft.y -= 0.5; // Float up
+        ft.life -= 0.016; // 大约 60fps
+        ft.y -= 0.5; // 向上浮动
         
         if (ft.life <= 0) {
             floatingTexts.splice(i, 1);
@@ -663,7 +663,7 @@ function updateFloatingTexts() {
 }
 
 function spawnMonster() {
-    const side = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
+    const side = Math.floor(Math.random() * 4); // 0: 上, 1: 右, 2: 下, 3: 左
     let x, y;
 
     switch (side) {
@@ -673,7 +673,7 @@ function spawnMonster() {
         case 3: x = -20; y = Math.random() * canvas.height; break;
     }
 
-    // For now, just spawn monster type 1
+    // 目前只生成类型 1 的怪物
     const typeId = 1;
     const stats = monsterConfig[typeId];
     const hpMultiplier = 1 + 0.1 * currentLevel;
@@ -723,7 +723,7 @@ function getNearestMonster() {
     for (const m of monsters) {
         const dx = m.x - player.x;
         const dy = m.y - player.y;
-        const dist = dx * dx + dy * dy; // Squared distance is enough for comparison
+        const dist = dx * dx + dy * dy; // 距离平方足以用于比较
         if (dist < minDist) {
             minDist = dist;
             nearest = m;
@@ -755,19 +755,19 @@ function shootTarget(target) {
             color: 'cyan'
         });
     } else {
-        // Default Penetrate Type
+        // 默认穿透类型
         const dx = target.x - player.x;
         const dy = target.y - player.y;
         
-        // Calculate base angle
+        // 计算基础角度
         const angle = Math.atan2(dy, dx);
 
-        // Spawn multiple bullets if needed
+        // 如果需要，生成多个子弹
         for (let i = 0; i < weapon.projectileCount; i++) {
-            // Spread bullets slightly if more than 1
+            // 如果超过1个，稍微分散子弹
             let spreadAngle = 0;
             if (weapon.projectileCount > 1) {
-                const spread = 0.2; // Total spread in radians
+                const spread = 0.2; // 总扩散弧度
                 spreadAngle = -spread/2 + (spread / (weapon.projectileCount - 1)) * i;
             }
 
@@ -795,15 +795,15 @@ function drawWeapon() {
     if (!weapon || !weapon.visual) return;
 
     let angle = 0;
-    // Determine target to point at
+    // 确定指向的目标
     let target = null;
     
-    // If bursting, look at burst target
+    // 如果正在连发，看向连发目标
     if (burstTargetId) {
         target = monsters.find(m => m.id === burstTargetId);
     }
     
-    // If not bursting or burst target lost, look at nearest
+    // 如果没有连发或连发目标丢失，看向最近的目标
     if (!target) {
         target = getNearestMonster();
     }
@@ -819,30 +819,30 @@ function drawWeapon() {
     ctx.rotate(angle);
     
     ctx.fillStyle = weapon.visual.color;
-    // Draw rectangle representing weapon
-    // Offset slightly from center so it looks like it's held
+    // 绘制代表武器的矩形
+    // 稍微偏离中心，看起来像是被握着
     ctx.fillRect(0, -weapon.visual.width / 2, weapon.visual.length, weapon.visual.width);
     
     ctx.restore();
 }
 
-// Rendering
+// 渲染
 function draw() {
     ctx.fillStyle = '#222';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if (gameState === 'PLAYING' || gameState === 'GAMEOVER' || gameState === 'LOBBY' || gameState === 'VICTORY' || gameState === 'PAUSED') {
-        // Draw Player
+        // 绘制玩家
         ctx.beginPath();
         ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
         ctx.fillStyle = player.color;
         ctx.fill();
         ctx.closePath();
 
-        // Draw Weapon
+        // 绘制武器
         drawWeapon();
 
-        // Draw Player HP
+        // 绘制玩家生命值
         ctx.fillStyle = 'white';
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
@@ -850,7 +850,7 @@ function draw() {
         ctx.fillText(`生命: ${Math.ceil(player.hp)}/${player.maxHp}`, player.x, player.y - player.radius - 5);
 
         if (gameState !== 'LOBBY') {
-            // Draw Kill Count
+            // 绘制击杀数
             ctx.fillStyle = 'white';
             ctx.font = '20px Arial';
             ctx.textAlign = 'left';
@@ -858,11 +858,11 @@ function draw() {
             const config = levelConfig[currentLevel] || levelConfig[3];
             ctx.fillText(`击杀: ${killCount} / ${config.winKillCount} (关卡 ${currentLevel})`, 20, 20);
 
-            // Draw Session Gold
+            // 绘制本局金币
             ctx.fillStyle = 'gold';
             ctx.fillText(`金币: ${sessionGold}`, 20, 50);
 
-            // Draw Monsters
+            // 绘制怪物
             for (const m of monsters) {
                 ctx.beginPath();
                 ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
@@ -870,7 +870,7 @@ function draw() {
                 ctx.fill();
                 ctx.closePath();
                 
-                // Draw HP (optional, for debugging/clarity)
+                // 绘制生命值 (可选，用于调试/清晰度)
                 ctx.fillStyle = 'white';
                 ctx.font = '12px Arial';
                 ctx.textAlign = 'center';
@@ -878,7 +878,7 @@ function draw() {
                 ctx.fillText(Math.ceil(m.hp), m.x, m.y);
             }
 
-            // Draw Bullets
+            // 绘制子弹
             for (const b of bullets) {
                 ctx.beginPath();
                 ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
@@ -887,7 +887,7 @@ function draw() {
                 ctx.closePath();
             }
 
-            // Draw Floating Texts
+            // 绘制浮动文字
             for (const ft of floatingTexts) {
                 ctx.globalAlpha = Math.max(0, ft.life);
                 ctx.fillStyle = ft.color;

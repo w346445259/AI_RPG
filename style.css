@@ -36,7 +36,7 @@ canvas {
     display: flex;
     width: 80%;
     height: 60%;
-    /* background: rgba(0, 0, 0, 0.85); Removed to let canvas show through on right */
+    /* background: rgba(0, 0, 0, 0.85); 移除以让右侧显示 canvas */
     border-radius: 15px;
     overflow: hidden;
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
@@ -50,7 +50,7 @@ canvas {
     align-items: center;
     border-right: 1px solid #444;
     color: white;
-    background: rgba(0, 0, 0, 0.85); /* Moved background here */
+    background: rgba(0, 0, 0, 0.85); /* 背景移动到这里 */
 }
 
 .lobby-right {

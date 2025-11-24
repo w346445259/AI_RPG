@@ -1,5 +1,5 @@
 export const monsterConfig = {
-    // ID: Monster Stats
+    // ID: 怪物属性
     1: {
         name: 'Basic Red',
         hp: 10,

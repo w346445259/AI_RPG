@@ -19,3 +19,5 @@
 - Work through each checklist item systematically.
 - Keep communication concise and focused.
 - Follow development best practices.
+- **Always use Chinese for code comments.**
+- **Ensure all UI text is in Chinese.**

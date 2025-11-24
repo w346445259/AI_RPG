@@ -4,11 +4,11 @@ export const weaponConfig = {
         type: 'penetrate',
         name: "默认手枪",
         damageMultiplier: 0.7, // 70%
-        fireRate: 1000, // 1s
+        fireRate: 1000, // 1秒
         projectileCount: 1,
         penetration: 1,
         burstCount: 2,
-        burstDelay: 100, // ms
+        burstDelay: 100, // 毫秒
         visual: {
             color: '#555',
             width: 8,

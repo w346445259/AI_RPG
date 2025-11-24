@@ -1,6 +1,6 @@
 export const levelConfig = {
     1: {
-        spawnRate: 60000 / 100, // 100 monsters per minute
+        spawnRate: 60000 / 100, // 每分钟 100 只怪物
         winKillCount: 10
     },
     2: {
