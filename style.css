@@ -95,6 +95,13 @@ button:hover {
 #gold-display {
     font-size: 24px;
     color: gold;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+#reiki-display {
+    font-size: 24px;
+    color: #00BFFF;
     margin-bottom: 20px;
     font-weight: bold;
 }
@@ -152,4 +159,59 @@ button:hover {
     background-color: #555;
     cursor: not-allowed;
     opacity: 0.7;
+}
+
+.cultivation-container {
+    display: flex;
+    width: 80%;
+    height: 60%;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.cultivation-tabs {
+    width: 150px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    padding: 15px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 18px;
+    margin: 0;
+    border-radius: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.tab-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+
+.tab-btn.active {
+    background: rgba(76, 175, 80, 0.5);
+    color: white;
+    border-left: 4px solid #4CAF50;
+}
+
+.cultivation-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.tab-content {
+    display: block;
+}
+
+.tab-content.hidden {
+    display: none;
 }

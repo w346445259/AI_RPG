@@ -16,6 +16,7 @@ const lobbyBtn = document.getElementById('lobby-btn');
 const continueBtn = document.getElementById('continue-btn');
 const victoryLobbyBtn = document.getElementById('victory-lobby-btn');
 const goldDisplay = document.getElementById('gold-display');
+const reikiDisplay = document.getElementById('reiki-display');
 const lossGoldDisplay = document.getElementById('loss-gold-display');
 const winGoldDisplay = document.getElementById('win-gold-display');
 
@@ -23,25 +24,73 @@ const winGoldDisplay = document.getElementById('win-gold-display');
 const upgradeScreen = document.getElementById('upgrade-screen');
 const upgradeBtn = document.getElementById('upgrade-btn');
 const btnBackLobby = document.getElementById('btn-back-lobby');
-const upgradeGoldDisplay = document.getElementById('upgrade-gold-display');
+
+// 凡人阶段 UI
+const btnBreakthroughMortal = document.getElementById('btn-breakthrough-mortal');
+const mortalProcessDiv = document.getElementById('mortal-process');
+const mortalCompletedDiv = document.getElementById('mortal-completed');
+
+function updateCultivationUI() {
+    updateGoldDisplay();
+
+    // 凡人阶段逻辑
+    if (cultivationStage > 0) {
+        mortalProcessDiv.classList.add('hidden');
+        mortalCompletedDiv.classList.remove('hidden');
+    } else {
+        mortalProcessDiv.classList.remove('hidden');
+        mortalCompletedDiv.classList.add('hidden');
+        
+        const cost = 20;
+        if (totalReiki >= cost) {
+            btnBreakthroughMortal.disabled = false;
+            btnBreakthroughMortal.textContent = `感应天地 (消耗: ${cost} 灵气)`;
+        } else {
+            btnBreakthroughMortal.disabled = true;
+            btnBreakthroughMortal.textContent = `灵气不足 (需 ${cost})`;
+        }
+    }
+}
+
+btnBreakthroughMortal.addEventListener('click', () => {
+    const cost = 20;
+    if (cultivationStage === 0 && totalReiki >= cost) {
+        totalReiki -= cost;
+        cultivationStage = 1; // 进入锻体期
+        localStorage.setItem('totalReiki', totalReiki);
+        localStorage.setItem('cultivationStage', cultivationStage);
+        updateCultivationUI();
+        alert("恭喜！您已感应天地，踏入锻体期！");
+    }
+});
+
+// 修炼标签页逻辑
+const tabBtns = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        // 移除所有按钮的激活状态
+        tabBtns.forEach(b => b.classList.remove('active'));
+        // 添加当前按钮的激活状态
+        btn.classList.add('active');
+
+        // 隐藏所有内容
+        tabContents.forEach(c => c.classList.add('hidden'));
+        // 显示选中内容
+        const tabId = btn.getAttribute('data-tab');
+        const content = document.getElementById(`content-${tabId}`);
+        if (content) {
+            content.classList.remove('hidden');
+        }
+    });
+});
 
 // 武器 UI 元素
 const weaponScreen = document.getElementById('weapon-screen');
 const weaponBtn = document.getElementById('weapon-btn');
 const btnWeaponBackLobby = document.getElementById('btn-weapon-back-lobby');
 const weaponList = document.getElementById('weapon-list');
-
-const atkLevelSpan = document.getElementById('atk-level');
-const atkValSpan = document.getElementById('atk-val');
-const atkNextSpan = document.getElementById('atk-next');
-const atkCostSpan = document.getElementById('atk-cost');
-const btnUpgradeAtk = document.getElementById('btn-upgrade-atk');
-
-const hpLevelSpan = document.getElementById('hp-level');
-const hpValSpan = document.getElementById('hp-val');
-const hpNextSpan = document.getElementById('hp-next');
-const hpCostSpan = document.getElementById('hp-cost');
-const btnUpgradeHp = document.getElementById('btn-upgrade-hp');
 
 // 暂停 UI 元素
 const pauseBtn = document.getElementById('pause-btn');
@@ -59,9 +108,9 @@ canvas.height = window.innerHeight;
 let gameState = 'LOBBY'; // LOBBY (大厅), PLAYING (游戏中), GAMEOVER (游戏结束), VICTORY (胜利), UPGRADE (强化), WEAPON (武器库), PAUSED (暂停)
 
 let totalGold = parseInt(localStorage.getItem('totalGold')) || 0;
+let totalReiki = parseInt(localStorage.getItem('totalReiki')) || 0;
+let cultivationStage = parseInt(localStorage.getItem('cultivationStage')) || 0; // 0: 凡人, 1: 锻体, ...
 let sessionGold = 0; // 本局获得金币
-let attackLevel = parseInt(localStorage.getItem('attackLevel')) || 0;
-let hpLevel = parseInt(localStorage.getItem('hpLevel')) || 0;
 let equippedWeaponId = parseInt(localStorage.getItem('equippedWeaponId')) || 1;
 
 let currentLevel = 1;
@@ -70,8 +119,8 @@ let hasWon = false;
 
 function getPlayerStats() {
     return {
-        damage: playerConfig.damage + attackLevel * 1,
-        maxHp: playerConfig.maxHp + hpLevel * 2
+        damage: playerConfig.damage,
+        maxHp: playerConfig.maxHp
     };
 }
 
@@ -129,49 +178,7 @@ function initGame() {
 
 function updateGoldDisplay() {
     goldDisplay.textContent = `金币: ${totalGold}`;
-    upgradeGoldDisplay.textContent = `金币: ${totalGold}`;
-}
-
-function updateUpgradeUI() {
-    updateGoldDisplay();
-
-    // 攻击力 UI
-    atkLevelSpan.textContent = attackLevel;
-    const currentAtk = playerConfig.damage + attackLevel * 1;
-    atkValSpan.textContent = currentAtk;
-    
-    if (attackLevel >= 10) {
-        atkNextSpan.textContent = "已满级";
-        atkCostSpan.textContent = "-";
-        btnUpgradeAtk.disabled = true;
-        btnUpgradeAtk.textContent = "已满级";
-    } else {
-        const nextAtk = currentAtk + 1;
-        const cost = attackLevel + 1; // 消耗 = 下一级 (例如 0->1 消耗 1)
-        atkNextSpan.textContent = nextAtk;
-        atkCostSpan.textContent = cost;
-        btnUpgradeAtk.disabled = totalGold < cost;
-        btnUpgradeAtk.textContent = `升级 (消耗: ${cost})`;
-    }
-
-    // 生命值 UI
-    hpLevelSpan.textContent = hpLevel;
-    const currentHp = playerConfig.maxHp + hpLevel * 2;
-    hpValSpan.textContent = currentHp;
-
-    if (hpLevel >= 10) {
-        hpNextSpan.textContent = "已满级";
-        hpCostSpan.textContent = "-";
-        btnUpgradeHp.disabled = true;
-        btnUpgradeHp.textContent = "已满级";
-    } else {
-        const nextHp = currentHp + 2;
-        const cost = hpLevel + 1;
-        hpNextSpan.textContent = nextHp;
-        hpCostSpan.textContent = cost;
-        btnUpgradeHp.disabled = totalGold < cost;
-        btnUpgradeHp.textContent = `升级 (消耗: ${cost})`;
-    }
+    reikiDisplay.textContent = `灵气: ${totalReiki}`;
 }
 
 function updateWeaponUI() {
@@ -224,7 +231,7 @@ upgradeBtn.addEventListener('click', () => {
     gameState = 'UPGRADE';
     startScreen.classList.add('hidden');
     upgradeScreen.classList.remove('hidden');
-    updateUpgradeUI();
+    updateCultivationUI();
 });
 
 weaponBtn.addEventListener('click', () => {
@@ -249,28 +256,6 @@ btnWeaponBackLobby.addEventListener('click', () => {
     gameState = 'LOBBY';
     weaponScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
-});
-
-btnUpgradeAtk.addEventListener('click', () => {
-    const cost = attackLevel + 1;
-    if (attackLevel < 10 && totalGold >= cost) {
-        totalGold -= cost;
-        attackLevel++;
-        localStorage.setItem('totalGold', totalGold);
-        localStorage.setItem('attackLevel', attackLevel);
-        updateUpgradeUI();
-    }
-});
-
-btnUpgradeHp.addEventListener('click', () => {
-    const cost = hpLevel + 1;
-    if (hpLevel < 10 && totalGold >= cost) {
-        totalGold -= cost;
-        hpLevel++;
-        localStorage.setItem('totalGold', totalGold);
-        localStorage.setItem('hpLevel', hpLevel);
-        updateUpgradeUI();
-    }
 });
 
 // 加载时初始化金币显示

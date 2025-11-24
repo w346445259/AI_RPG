@@ -18,8 +18,9 @@
                 <div class="lobby-left">
                     <h1>H5 2D 游戏</h1>
                     <div id="gold-display">金币: 0</div>
+                    <div id="reiki-display">灵气: 0</div>
                     <button id="start-btn">开始游戏</button>
-                    <button id="upgrade-btn" style="background-color: #9C27B0;">强化</button>
+                    <button id="upgrade-btn" style="background-color: #9C27B0;">修炼</button>
                     <button id="weapon-btn" style="background-color: #FF5722;">武器库</button>
                 </div>
                 <div class="lobby-right">
@@ -42,20 +43,40 @@
         </div>
         
         <div id="upgrade-screen" class="screen hidden">
-            <h1>强化 (养成)</h1>
-            <div id="upgrade-gold-display" style="color: gold; font-size: 24px; margin-bottom: 20px; font-weight: bold;">金币: 0</div>
-            <div class="upgrade-container">
-                <div class="upgrade-item">
-                    <h2>攻击力</h2>
-                    <p>等级: <span id="atk-level">0</span>/10</p>
-                    <p>伤害: <span id="atk-val">1</span> <span class="arrow">-></span> <span id="atk-next">2</span></p>
-                    <button id="btn-upgrade-atk">升级 (消耗: <span id="atk-cost">1</span>)</button>
+            <h1>修炼</h1>
+            <div class="cultivation-container">
+                <div class="cultivation-tabs">
+                    <button class="tab-btn active" data-tab="mortal">凡人</button>
+                    <button class="tab-btn" data-tab="body-refining">锻体</button>
+                    <button class="tab-btn" data-tab="qi-refining">练气</button>
+                    <button class="tab-btn" data-tab="foundation">筑基</button>
+                    <button class="tab-btn" data-tab="golden-core">金丹</button>
+                    <button class="tab-btn" data-tab="nascent-soul">元婴</button>
+                    <button class="tab-btn" data-tab="soul-formation">化神</button>
+                    <button class="tab-btn" data-tab="tribulation">渡劫</button>
+                    <button class="tab-btn" data-tab="mahayana">大乘</button>
                 </div>
-                <div class="upgrade-item">
-                    <h2>生命值</h2>
-                    <p>等级: <span id="hp-level">0</span>/10</p>
-                    <p>最大生命: <span id="hp-val">10</span> <span class="arrow">-></span> <span id="hp-next">12</span></p>
-                    <button id="btn-upgrade-hp">升级 (消耗: <span id="hp-cost">1</span>)</button>
+                <div class="cultivation-content">
+                    <div id="content-mortal" class="tab-content">
+                        <div id="mortal-process">
+                            <h2>凡人阶段</h2>
+                            <p>肉体凡胎，未入仙途。</p>
+                            <p>需消耗 20 灵气感应天地，方可踏入修炼之路。</p>
+                            <button id="btn-breakthrough-mortal" style="background-color: #FF9800; margin-top: 20px;">感应天地 (消耗: 20 灵气)</button>
+                        </div>
+                        <div id="mortal-completed" class="hidden">
+                            <h2>凡人阶段</h2>
+                            <p>您已踏入仙人之路。</p>
+                        </div>
+                    </div>
+                    <div id="content-body-refining" class="tab-content hidden">锻体内容 (空)</div>
+                    <div id="content-qi-refining" class="tab-content hidden">练气内容 (空)</div>
+                    <div id="content-foundation" class="tab-content hidden">筑基内容 (空)</div>
+                    <div id="content-golden-core" class="tab-content hidden">金丹内容 (空)</div>
+                    <div id="content-nascent-soul" class="tab-content hidden">元婴内容 (空)</div>
+                    <div id="content-soul-formation" class="tab-content hidden">化神内容 (空)</div>
+                    <div id="content-tribulation" class="tab-content hidden">渡劫内容 (空)</div>
+                    <div id="content-mahayana" class="tab-content hidden">大乘内容 (空)</div>
                 </div>
             </div>
             <button id="btn-back-lobby" style="margin-top: 30px; background-color: #607D8B;">返回大厅</button>
