@@ -7,6 +7,7 @@ export const monsterConfig = {
         radius: 20,
         color: 'red',
         damage: 1,
+        defense: 0,
         goldMin: 1,
         goldMax: 3
     }

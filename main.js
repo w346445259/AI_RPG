@@ -2,6 +2,7 @@ import { playerConfig } from './config/playerConfig.js';
 import { monsterConfig } from './config/monsterConfig.js';
 import { levelConfig } from './config/spawnConfig.js';
 import { weaponConfig } from './config/weaponConfig.js';
+import { bodyRefiningConfig, realmBaseConfig } from './config/cultivationConfig.js';
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -30,8 +31,42 @@ const btnBreakthroughMortal = document.getElementById('btn-breakthrough-mortal')
 const mortalProcessDiv = document.getElementById('mortal-process');
 const mortalCompletedDiv = document.getElementById('mortal-completed');
 
+// 锻体阶段 UI
+const contentBodyRefining = document.getElementById('content-body-refining');
+
+// 通用提示框函数
+function showNotification(message) {
+    const container = document.getElementById('notification-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'notification-toast';
+    toast.textContent = message;
+
+    container.appendChild(toast);
+
+    // 触发动画
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+
+    // 3秒后移除
+    setTimeout(() => {
+        toast.classList.remove('show');
+        toast.addEventListener('transitionend', () => {
+            toast.remove();
+        });
+    }, 3000);
+}
+
 function updateCultivationUI() {
     updateGoldDisplay();
+
+    // 更新修炼界面的灵气显示
+    const cultivationReikiDisplay = document.getElementById('cultivation-reiki-display');
+    if (cultivationReikiDisplay) {
+        cultivationReikiDisplay.textContent = `当前灵气: ${totalReiki}`;
+    }
 
     // 凡人阶段逻辑
     if (cultivationStage > 0) {
@@ -41,7 +76,7 @@ function updateCultivationUI() {
         mortalProcessDiv.classList.remove('hidden');
         mortalCompletedDiv.classList.add('hidden');
         
-        const cost = 20;
+        const cost = realmBaseConfig[1].cost;
         if (totalReiki >= cost) {
             btnBreakthroughMortal.disabled = false;
             btnBreakthroughMortal.textContent = `感应天地 (消耗: ${cost} 灵气)`;
@@ -50,17 +85,161 @@ function updateCultivationUI() {
             btnBreakthroughMortal.textContent = `灵气不足 (需 ${cost})`;
         }
     }
+
+    // 锻体阶段逻辑
+    updateBodyRefiningUI();
+    
+    // 筑基阶段逻辑
+    updateFoundationUI();
+}
+
+const contentFoundation = document.getElementById('content-foundation');
+
+function updateFoundationUI() {
+    if (!contentFoundation) return;
+    contentFoundation.innerHTML = '';
+
+    if (cultivationStage < 10) {
+        contentFoundation.innerHTML = '<p>需锻体圆满方可窥探筑基之境。</p>';
+        return;
+    }
+
+    const baseBonus = realmBaseConfig[10].stats;
+    contentFoundation.innerHTML = `
+        <h2>筑基期</h2>
+        <p>大道之基，已然铸成。</p>
+        <p>本阶段累计属性: 攻击 +${baseBonus.damage}, 生命 +${baseBonus.maxHp}, 防御 +${baseBonus.defense}</p>
+        <p>（后续境界待开放）</p>
+    `;
+}
+
+function updateBodyRefiningUI() {
+    contentBodyRefining.innerHTML = ''; // 清空内容
+
+    if (cultivationStage === 0) {
+        contentBodyRefining.innerHTML = '<p>请先完成凡人阶段的修炼。</p>';
+        return;
+    }
+
+    const currentTier = cultivationStage;
+    const maxTier = bodyRefiningConfig.maxTier || 9;
+    const baseStats = realmBaseConfig[1].stats;
+
+    // 辅助函数：计算总属性
+    const getTotalStats = (tierStats) => {
+        return {
+            damage: (baseStats.damage || 0) + (tierStats.damage || 0),
+            maxHp: (baseStats.maxHp || 0) + (tierStats.maxHp || 0),
+            defense: (baseStats.defense || 0) + (tierStats.defense || 0)
+        };
+    };
+
+    // 如果已经进入筑基期 (Stage >= 10)
+    if (currentTier >= 10) {
+        const maxTierStats = bodyRefiningConfig.tiers[maxTier];
+        const total = getTotalStats(maxTierStats);
+        contentBodyRefining.innerHTML = `
+            <h2>锻体期 (圆满)</h2>
+            <p>肉身已臻化境，已成功筑基。</p>
+            <p>本阶段累计属性: 攻击 +${total.damage}, 生命 +${total.maxHp}, 防御 +${total.defense}</p>
+        `;
+        return;
+    }
+
+    // 当前是锻体期第 currentTier 阶
+    const currentTierStats = bodyRefiningConfig.tiers[currentTier];
+    const currentTotal = getTotalStats(currentTierStats);
+    
+    // 下一阶
+    const nextTier = currentTier + 1;
+    
+    let html = `
+        <h2>锻体期 第 ${currentTier} 阶</h2>
+        <p>本阶段累计属性: 攻击 +${currentTotal.damage}, 生命 +${currentTotal.maxHp}, 防御 +${currentTotal.defense}</p>
+    `;
+
+    if (nextTier <= maxTier) {
+        const nextTierStats = bodyRefiningConfig.tiers[nextTier];
+        const nextTotal = getTotalStats(nextTierStats);
+        const cost = bodyRefiningConfig.getCost(nextTier);
+        const canAfford = totalReiki >= cost;
+
+        html += `
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                <h3>下一阶: 第 ${nextTier} 阶</h3>
+                <p>升级后累计属性: 攻击 +${nextTotal.damage}, 生命 +${nextTotal.maxHp}, 防御 +${nextTotal.defense}</p>
+                <p>消耗灵气: ${cost}</p>
+                <button id="btn-breakthrough-body" style="background-color: #FF5722; margin-top: 10px;" ${canAfford ? '' : 'disabled'}>
+                    ${canAfford ? '突破瓶颈' : '灵气不足'}
+                </button>
+            </div>
+        `;
+    } else {
+        // 锻体9阶，准备筑基
+        const foundationConfig = realmBaseConfig[10];
+        const cost = foundationConfig.cost;
+        const canAfford = totalReiki >= cost;
+        const bonus = foundationConfig.stats;
+
+        html += `
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; border: 1px solid gold;">
+                <h3 style="color: gold;">突破: 筑基期</h3>
+                <p>筑大道之基，脱胎换骨。</p>
+                <p>筑基加成: 攻击 +${bonus.damage}, 生命 +${bonus.maxHp}, 防御 +${bonus.defense}</p>
+                <p>消耗灵气: ${cost}</p>
+                <button id="btn-breakthrough-foundation" style="background-color: gold; color: black; margin-top: 10px; font-weight: bold;" ${canAfford ? '' : 'disabled'}>
+                    ${canAfford ? '筑基' : '灵气不足'}
+                </button>
+            </div>
+        `;
+    }
+
+    contentBodyRefining.innerHTML = html;
+
+    // 绑定按钮事件
+    const btnBreakthroughBody = document.getElementById('btn-breakthrough-body');
+    if (btnBreakthroughBody) {
+        btnBreakthroughBody.addEventListener('click', () => {
+            const cost = bodyRefiningConfig.getCost(nextTier);
+            if (totalReiki >= cost) {
+                totalReiki -= cost;
+                cultivationStage = nextTier;
+                localStorage.setItem('totalReiki', totalReiki);
+                localStorage.setItem('cultivationStage', cultivationStage);
+                updateCultivationUI();
+                updatePlayerStatsDisplay(); // 更新大厅属性面板
+                showNotification(`突破成功！晋升为 锻体期 第 ${cultivationStage} 阶！`);
+            }
+        });
+    }
+
+    const btnBreakthroughFoundation = document.getElementById('btn-breakthrough-foundation');
+    if (btnBreakthroughFoundation) {
+        btnBreakthroughFoundation.addEventListener('click', () => {
+            const cost = realmBaseConfig[10].cost;
+            if (totalReiki >= cost) {
+                totalReiki -= cost;
+                cultivationStage = 10; // 进入筑基期 (Stage 10)
+                localStorage.setItem('totalReiki', totalReiki);
+                localStorage.setItem('cultivationStage', cultivationStage);
+                updateCultivationUI();
+                updatePlayerStatsDisplay();
+                showNotification("恭喜道友！筑基成功，大道可期！");
+            }
+        });
+    }
 }
 
 btnBreakthroughMortal.addEventListener('click', () => {
-    const cost = 20;
+    const cost = realmBaseConfig[1].cost;
     if (cultivationStage === 0 && totalReiki >= cost) {
         totalReiki -= cost;
-        cultivationStage = 1; // 进入锻体期
+        cultivationStage = 1; // 进入锻体期 1阶
         localStorage.setItem('totalReiki', totalReiki);
         localStorage.setItem('cultivationStage', cultivationStage);
         updateCultivationUI();
-        alert("恭喜！您已感应天地，踏入锻体期！");
+        updatePlayerStatsDisplay(); // 更新大厅属性面板
+        showNotification("恭喜！您已感应天地，踏入锻体期！");
     }
 });
 
@@ -108,7 +287,12 @@ canvas.height = window.innerHeight;
 let gameState = 'LOBBY'; // LOBBY (大厅), PLAYING (游戏中), GAMEOVER (游戏结束), VICTORY (胜利), UPGRADE (强化), WEAPON (武器库), PAUSED (暂停)
 
 let totalGold = parseInt(localStorage.getItem('totalGold')) || 0;
-let totalReiki = parseInt(localStorage.getItem('totalReiki')) || 0;
+let totalReiki;
+if (localStorage.getItem('totalReiki') !== null) {
+    totalReiki = parseInt(localStorage.getItem('totalReiki'));
+} else {
+    totalReiki = playerConfig.initialReiki || 0;
+}
 let cultivationStage = parseInt(localStorage.getItem('cultivationStage')) || 0; // 0: 凡人, 1: 锻体, ...
 let sessionGold = 0; // 本局获得金币
 let equippedWeaponId = parseInt(localStorage.getItem('equippedWeaponId')) || 1;
@@ -118,20 +302,49 @@ let killCount = 0;
 let hasWon = false;
 
 function getPlayerStats() {
+    let bonusDamage = 0;
+    let bonusHp = 0;
+    let bonusDefense = 0;
+
+    // 境界基础加成 (Realm Base Stats)
+    for (const stageStr in realmBaseConfig) {
+        const stageThreshold = parseInt(stageStr);
+        if (cultivationStage >= stageThreshold) {
+            const bonus = realmBaseConfig[stageThreshold].stats;
+            bonusDamage += (bonus.damage || 0);
+            bonusHp += (bonus.maxHp || 0);
+            bonusDefense += (bonus.defense || 0);
+        }
+    }
+
+    // 锻体期加成 (Stage 1-9)
+    if (cultivationStage >= 1) {
+        // 如果超过9阶，暂时按9阶算，或者后续扩展
+        const tier = Math.min(cultivationStage, 9);
+        const tierData = bodyRefiningConfig.tiers[tier];
+        if (tierData) {
+            bonusDamage += tierData.damage;
+            bonusHp += tierData.maxHp;
+            bonusDefense += (tierData.defense || 0);
+        }
+    }
+
     return {
-        damage: playerConfig.damage,
-        maxHp: playerConfig.maxHp
+        damage: playerConfig.damage + bonusDamage,
+        defense: playerConfig.defense + bonusDefense,
+        maxHp: playerConfig.maxHp + bonusHp
     };
 }
 
 let player = {
     x: canvas.width * 0.7, // 大厅中的位置
-    y: canvas.height / 2,
+    y: canvas.height * 0.6,
     radius: playerConfig.radius,
     speed: playerConfig.speed,
     color: playerConfig.color,
     hp: getPlayerStats().maxHp,
     maxHp: getPlayerStats().maxHp,
+    defense: getPlayerStats().defense,
     lastHitTime: 0
 };
 
@@ -181,6 +394,20 @@ function updateGoldDisplay() {
     reikiDisplay.textContent = `灵气: ${totalReiki}`;
 }
 
+function updatePlayerStatsDisplay() {
+    const stats = getPlayerStats();
+    
+    const hpEl = document.getElementById('stat-hp');
+    const damageEl = document.getElementById('stat-damage');
+    const defenseEl = document.getElementById('stat-defense');
+    const speedEl = document.getElementById('stat-speed');
+
+    if (hpEl) hpEl.textContent = stats.maxHp;
+    if (damageEl) damageEl.textContent = stats.damage.toFixed(1);
+    if (defenseEl) defenseEl.textContent = stats.defense;
+    if (speedEl) speedEl.textContent = playerConfig.speed;
+}
+
 function updateWeaponUI() {
     weaponList.innerHTML = '';
     for (const id in weaponConfig) {
@@ -217,6 +444,7 @@ window.equipWeapon = (id) => {
     equippedWeaponId = id;
     localStorage.setItem('equippedWeaponId', id);
     updateWeaponUI();
+    updatePlayerStatsDisplay();
 };
 
 // UI 事件监听器
@@ -232,6 +460,19 @@ upgradeBtn.addEventListener('click', () => {
     startScreen.classList.add('hidden');
     upgradeScreen.classList.remove('hidden');
     updateCultivationUI();
+
+    // 自动切换到当前境界的标签页
+    let targetTab = 'mortal';
+    if (cultivationStage >= 1 && cultivationStage <= 9) {
+        targetTab = 'body-refining';
+    } else if (cultivationStage >= 10) {
+        targetTab = 'foundation';
+    }
+    
+    const targetBtn = document.querySelector(`.tab-btn[data-tab="${targetTab}"]`);
+    if (targetBtn) {
+        targetBtn.click();
+    }
 });
 
 weaponBtn.addEventListener('click', () => {
@@ -250,16 +491,19 @@ btnBackLobby.addEventListener('click', () => {
     const stats = getPlayerStats();
     player.maxHp = stats.maxHp;
     player.hp = stats.maxHp;
+    updatePlayerStatsDisplay();
 });
 
 btnWeaponBackLobby.addEventListener('click', () => {
     gameState = 'LOBBY';
     weaponScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
+    updatePlayerStatsDisplay();
 });
 
 // 加载时初始化金币显示
 updateGoldDisplay();
+updatePlayerStatsDisplay();
 
 restartBtn.addEventListener('click', () => {
     initGame();
@@ -274,11 +518,12 @@ restartBtn.addEventListener('click', () => {
     startScreen.classList.remove('hidden');
     pauseBtn.classList.add('hidden');
     updateGoldDisplay();
+    updatePlayerStatsDisplay();
     
     // 重置大厅玩家位置
     const stats = getPlayerStats();
     player.x = canvas.width * 0.7;
-    player.y = canvas.height / 2;
+    player.y = canvas.height * 0.6;
     player.hp = stats.maxHp;
     player.maxHp = stats.maxHp;
 });
@@ -311,11 +556,12 @@ victoryLobbyBtn.addEventListener('click', () => {
     startScreen.classList.remove('hidden');
     pauseBtn.classList.add('hidden');
     updateGoldDisplay();
+    updatePlayerStatsDisplay();
 
     // 重置大厅玩家位置
     const stats = getPlayerStats();
     player.x = canvas.width * 0.7;
-    player.y = canvas.height / 2;
+    player.y = canvas.height * 0.6;
     player.hp = stats.maxHp;
     player.maxHp = stats.maxHp;
 });// 暂停逻辑
@@ -355,11 +601,12 @@ confirmQuitYes.addEventListener('click', () => {
     // 重置游戏状态但不保存本局金币
     sessionGold = 0;
     updateGoldDisplay();
+    updatePlayerStatsDisplay();
     
     // 重置大厅玩家位置
     const stats = getPlayerStats();
     player.x = canvas.width * 0.7;
-    player.y = canvas.height / 2;
+    player.y = canvas.height * 0.6;
     player.hp = stats.maxHp;
     player.maxHp = stats.maxHp;
 });
@@ -383,7 +630,7 @@ window.addEventListener('resize', () => {
     canvas.height = window.innerHeight;
     if (gameState === 'LOBBY') {
         player.x = canvas.width * 0.7;
-        player.y = canvas.height / 2;
+        player.y = canvas.height * 0.6;
     }
 });
 
@@ -556,8 +803,18 @@ function updatePenetrateBullet(b, i) {
 }
 
 function handleBulletHit(bullet, monster, bulletIndex) {
-    monster.hp -= bullet.damage;
+    const actualDamage = Math.max(1, bullet.damage - (monster.defense || 0));
+    monster.hp -= actualDamage;
     bullet.hitIds.push(monster.id);
+
+    // 显示伤害数字
+    floatingTexts.push({
+        x: monster.x,
+        y: monster.y - 10,
+        text: `-${actualDamage.toFixed(1)}`,
+        life: 0.5,
+        color: 'white'
+    });
 
     if (monster.hp <= 0) {
         const mIndex = monsters.indexOf(monster);
@@ -622,9 +879,19 @@ function updateMonsters(timestamp) {
         // 玩家碰撞
         if (dist < player.radius + m.radius) {
             if (timestamp - player.lastHitTime > 1000) { // 1秒无敌时间
-                player.hp -= m.damage;
+                const actualDamage = Math.max(1, m.damage - (player.defense || 0));
+                player.hp -= actualDamage;
                 player.lastHitTime = timestamp;
                 
+                // 显示玩家受伤数字
+                floatingTexts.push({
+                    x: player.x,
+                    y: player.y - 20,
+                    text: `-${actualDamage.toFixed(1)}`,
+                    life: 0.5,
+                    color: 'red'
+                });
+
                 if (player.hp <= 0) {
                     gameState = 'GAMEOVER';
                     lossGoldDisplay.textContent = `损失金币: ${sessionGold}`;
@@ -673,6 +940,7 @@ function spawnMonster() {
         speed: stats.speed,
         color: stats.color,
         damage: stats.damage,
+        defense: stats.defense,
         goldMin: stats.goldMin,
         goldMax: stats.goldMax,
         typeId: typeId
@@ -828,11 +1096,13 @@ function draw() {
         drawWeapon();
 
         // 绘制玩家生命值
-        ctx.fillStyle = 'white';
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        ctx.fillText(`生命: ${Math.ceil(player.hp)}/${player.maxHp}`, player.x, player.y - player.radius - 5);
+        if (gameState !== 'LOBBY') {
+            ctx.fillStyle = 'white';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(`生命: ${Math.ceil(player.hp)}/${player.maxHp}`, player.x, player.y - player.radius - 5);
+        }
 
         if (gameState !== 'LOBBY') {
             // 绘制击杀数

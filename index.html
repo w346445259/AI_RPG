@@ -10,6 +10,9 @@
     <canvas id="gameCanvas"></canvas>
     
     <div id="ui-layer">
+        <!-- Notification Container -->
+        <div id="notification-container"></div>
+
         <!-- Pause Button (Visible during gameplay) -->
         <button id="pause-btn" class="hidden" style="position: absolute; top: 20px; right: 20px; z-index: 20;">暂停</button>
 
@@ -26,6 +29,12 @@
                 <div class="lobby-right">
                     <!-- Player preview will be drawn on canvas behind here -->
                     <h2>玩家状态</h2>
+                    <div id="player-stats-display" style="text-align: left; margin-top: 20px; padding: 0 20px;">
+                        <p>生命: <span id="stat-hp">0</span></p>
+                        <p>攻击: <span id="stat-damage">0</span></p>
+                        <p>防御: <span id="stat-defense">0</span></p>
+                        <p>速度: <span id="stat-speed">0</span></p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -44,6 +53,7 @@
         
         <div id="upgrade-screen" class="screen hidden">
             <h1>修炼</h1>
+            <div id="cultivation-reiki-display" style="color: #00ffff; font-size: 20px; margin-bottom: 15px;">当前灵气: 0</div>
             <div class="cultivation-container">
                 <div class="cultivation-tabs">
                     <button class="tab-btn active" data-tab="mortal">凡人</button>

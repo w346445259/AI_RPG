@@ -215,3 +215,36 @@ button:hover {
 .tab-content.hidden {
     display: none;
 }
+
+/* Notification Toast */
+#notification-container {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-toast {
+    background-color: rgba(0, 0, 0, 0.9);
+    color: #FFD700;
+    padding: 15px 30px;
+    border-radius: 8px;
+    border: 1px solid #FFD700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    font-size: 18px;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    transform: translateY(20px);
+}
+
+.notification-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
