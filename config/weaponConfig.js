@@ -1,35 +1,35 @@
 export const weaponConfig = {
-    1: {
-        id: 1,
-        type: 'penetrate',
-        name: "默认手枪",
-        damageMultiplier: 0.7, // 70%
-        fireRate: 1000, // 1秒
-        projectileCount: 1,
-        penetration: 1,
-        burstCount: 2,
-        burstDelay: 100, // 毫秒
+    4: {
+        id: 4,
+        type: 'melee',
+        name: "木棍",
+        damageMultiplier: 0.5,
+        fireRate: 1000,
+        range: 120,
+        angle: 120, // 扇形角度
         visual: {
-            color: '#555',
-            width: 8,
-            length: 20
-        },
-        iconPath: 'assets/pistol.png'
-    },
-    2: {
-        id: 2,
-        type: 'bounce',
-        name: "魔法法杖",
-        damageMultiplier: 0.6,
-        fireRate: 800,
-        projectileCount: 1,
-        bounceCount: 3,
-        speed: 12,
-        visual: {
-            color: '#9C27B0',
+            color: '#8D6E63',
             width: 6,
-            length: 25
+            length: 50
         },
-        iconPath: 'assets/wand.png'
+        iconPath: 'assets/stick.png'
+    },
+    3: {
+        id: 3,
+        type: 'penetrate',
+        name: "长弓",
+        damageMultiplier: 0.5,
+        fireRate: 1000,
+        projectileCount: 1,
+        penetration: 0,
+        visual: {
+            color: '#8D6E63',
+            width: 4,
+            length: 30
+        },
+        crafting: {
+            materials: { 1: 5, 2: 10, 3: 5 }, // 5 Iron, 10 Wood, 5 Copper
+            description: "需消耗: 木头 x10, 凡铁矿 x5, 凡铜矿 x5"
+        }
     }
 };

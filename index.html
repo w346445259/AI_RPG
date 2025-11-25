@@ -25,9 +25,9 @@
                     <div id="exp-display">经验: 0</div>
                     <div id="next-level-exp-display">下阶所需: 0</div>
                     
-                    <button id="start-btn">开始游戏</button>
+                    <button id="start-btn">选择关卡</button>
                     <button id="upgrade-btn" style="background-color: #9C27B0;">修炼</button>
-                    <button id="weapon-btn" style="background-color: #FF5722;">武器库</button>
+                    <button id="forging-btn" style="background-color: #FF9800;">锻造</button>
                     <button id="inventory-btn" style="background-color: #795548;">背包</button>
                     <button id="debug-btn" style="background-color: #607D8B; margin-top: 10px;">调试功能</button>
                 </div>
@@ -36,13 +36,24 @@
                     <h2>玩家状态</h2>
                     <div id="player-stats-display" style="text-align: left; margin-top: 20px; padding: 0 20px;">
                         <p>生命: <span id="stat-hp">0</span></p>
-                        <p>攻击: <span id="stat-damage">0</span></p>
+                        <p>力量: <span id="stat-strength">0</span></p>
+                        <p>敏捷: <span id="stat-agility">0</span></p>
+                        <p>悟性: <span id="stat-comprehension">0</span></p>
                         <p>防御: <span id="stat-defense">0</span></p>
                         <p>速度: <span id="stat-speed">0</span></p>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div id="level-selection-screen" class="screen hidden">
+            <h1>选择关卡</h1>
+            <div id="level-list" class="upgrade-container" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 40px 20px; max-height: 75vh; overflow-y: auto; width: 85%; align-items: start; justify-content: center; padding: 20px;">
+                <!-- Levels will be injected here -->
+            </div>
+            <button id="btn-back-lobby-levels" style="margin-top: 20px; background-color: #607D8B;">返回大厅</button>
+        </div>
+
         <div id="game-over-screen" class="screen hidden">
             <h1>游戏结束</h1>
             <p id="loss-gold-display" style="color: #ff4444; font-size: 24px; margin: 20px 0;">损失金币: 0</p>
@@ -98,23 +109,47 @@
                     <div id="content-mahayana" class="tab-content hidden">大乘内容 (空)</div>
                 </div>
             </div>
-            <button id="btn-back-lobby" style="margin-top: 30px; background-color: #607D8B;">返回大厅</button>
+            <button id="btn-back-lobby" style="margin-top: 20px; background-color: #607D8B;">返回大厅</button>
         </div>
 
-        <div id="weapon-screen" class="screen hidden">
-            <h1>武器库</h1>
-            <div id="weapon-list" class="upgrade-container">
-                <!-- Weapons will be injected here -->
+        <div id="forging-screen" class="screen hidden">
+            <h1>锻造</h1>
+            <div class="forging-container">
+                <div class="forging-tabs">
+                    <button class="tab-btn active" data-tab="mortal-weapon">凡器</button>
+                </div>
+                <div class="forging-content">
+                    <div id="content-mortal-weapon" class="tab-content">
+                        <h2>凡器锻造</h2>
+                        <p>使用凡铁矿锻造基础武器。</p>
+                        <!-- 凡器锻造内容将在这里添加 -->
+                    </div>
+                </div>
             </div>
-            <button id="btn-weapon-back-lobby" style="margin-top: 30px; background-color: #607D8B;">返回大厅</button>
+            <button id="btn-back-lobby-forging" style="margin-top: 20px; background-color: #607D8B;">返回大厅</button>
         </div>
 
         <div id="inventory-screen" class="screen hidden">
             <h1>背包</h1>
-            <div id="inventory-list" class="inventory-container">
-                <p style="color: #aaa; font-size: 18px;">暂无道具</p>
+            <div class="inventory-container" style="display: flex; width: 80%; height: 60%; background: rgba(0,0,0,0.8); border-radius: 10px; overflow: hidden;">
+                <div class="inventory-tabs" style="width: 150px; background: rgba(255,255,255,0.1); display: flex; flex-direction: column;">
+                    <button class="tab-btn active" data-tab="items">道具</button>
+                    <button class="tab-btn" data-tab="weapons">武器</button>
+                </div>
+                <div class="inventory-content" style="flex: 1; padding: 20px; overflow-y: auto; text-align: left;">
+                    <div id="content-items" class="tab-content">
+                        <div id="inventory-list" class="upgrade-container">
+                            <p style="color: #aaa; font-size: 18px;">暂无道具</p>
+                        </div>
+                    </div>
+                    <div id="content-weapons" class="tab-content hidden">
+                        <div id="inventory-weapon-list" class="upgrade-container">
+                            <!-- Weapons will be injected here -->
+                        </div>
+                    </div>
+                </div>
             </div>
-            <button id="btn-inventory-back-lobby" style="margin-top: 30px; background-color: #607D8B;">返回大厅</button>
+            <button id="btn-inventory-back-lobby" style="margin-top: 30px; background-color: #607D8B; z-index: 100; cursor: pointer; position: relative;">返回大厅</button>
         </div>
 
         <div id="debug-screen" class="screen hidden" style="background: rgba(0,0,0,0.8); z-index: 50;">
@@ -125,6 +160,17 @@
                         <input type="number" id="test-exp-input" placeholder="输入经验值" style="width: 150px; padding: 10px; font-size: 16px; border-radius: 5px; border: none;">
                         <button id="test-add-exp-btn" style="background-color: #2196F3; margin: 0;">增加经验</button>
                     </div>
+                    
+                    <div style="margin: 20px 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center;">
+                        <select id="debug-item-select" style="padding: 10px; font-size: 16px; border-radius: 5px; border: none; min-width: 150px;">
+                            <!-- Options will be populated by JS -->
+                        </select>
+                        <input type="number" id="debug-item-count" placeholder="数量" value="1" style="width: 80px; padding: 10px; font-size: 16px; border-radius: 5px; border: none;">
+                        <button id="debug-add-item-btn" style="background-color: #4CAF50; margin: 0;">添加道具</button>
+                    </div>
+
+                    <button id="debug-unlock-levels-btn" style="background-color: #9C27B0; margin-top: 10px;">解锁所有关卡</button>
+
                     <button id="clear-data-btn" style="background-color: #f44336; margin-top: 20px;">清除所有存档</button>
                 </div>
                 <button id="btn-close-debug" style="margin-top: 30px; background-color: #607D8B;">关闭</button>

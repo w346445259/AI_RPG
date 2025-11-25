@@ -14,6 +14,9 @@ const startScreen = document.getElementById('start-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
 const victoryScreen = document.getElementById('victory-screen');
 const startBtn = document.getElementById('start-btn');
+const levelSelectionScreen = document.getElementById('level-selection-screen');
+const levelList = document.getElementById('level-list');
+const btnBackLobbyLevels = document.getElementById('btn-back-lobby-levels');
 const restartBtn = document.getElementById('restart-btn');
 const lobbyBtn = document.getElementById('lobby-btn');
 // const continueBtn = document.getElementById('continue-btn'); // 已废弃
@@ -33,12 +36,21 @@ const winGoldDisplay = document.getElementById('win-gold-display');
 // 测试 UI 元素
 const testExpInput = document.getElementById('test-exp-input');
 const testAddExpBtn = document.getElementById('test-add-exp-btn');
+const debugItemSelect = document.getElementById('debug-item-select');
+const debugItemCount = document.getElementById('debug-item-count');
+const debugAddItemBtn = document.getElementById('debug-add-item-btn');
+const debugUnlockLevelsBtn = document.getElementById('debug-unlock-levels-btn');
 
 // 强化 UI 元素
 const upgradeScreen = document.getElementById('upgrade-screen');
 const upgradeBtn = document.getElementById('upgrade-btn');
 const clearDataBtn = document.getElementById('clear-data-btn');
 const btnBackLobby = document.getElementById('btn-back-lobby');
+
+// 锻造 UI 元素
+const forgingScreen = document.getElementById('forging-screen');
+const forgingBtn = document.getElementById('forging-btn');
+const btnBackLobbyForging = document.getElementById('btn-back-lobby-forging');
 
 // 凡人阶段 UI
 const btnBreakthroughMortal = document.getElementById('btn-breakthrough-mortal');
@@ -189,7 +201,7 @@ function updateFoundationUI() {
     contentFoundation.innerHTML = `
         <h2>筑基期</h2>
         <p>大道之基，已然铸成。</p>
-        <p>本阶段累计属性: 攻击 +${baseBonus.damage}, 生命 +${baseBonus.maxHp}, 防御 +${baseBonus.defense}</p>
+        <p>本阶段累计属性: 力量 +${baseBonus.strength}, 敏捷 +${baseBonus.agility}, 悟性 +${baseBonus.comprehension}, 生命 +${baseBonus.maxHp}, 防御 +${baseBonus.defense}</p>
         <p>（后续境界待开放）</p>
     `;
 }
@@ -210,7 +222,9 @@ function updateBodyRefiningUI() {
     // 辅助函数：计算总属性
     const getTotalStats = (tierStats) => {
         return {
-            damage: (baseStats.damage || 0) + (tierStats.damage || 0),
+            strength: (baseStats.strength || 0) + (tierStats.strength || 0),
+            agility: (baseStats.agility || 0) + (tierStats.agility || 0),
+            comprehension: (baseStats.comprehension || 0) + (tierStats.comprehension || 0),
             maxHp: (baseStats.maxHp || 0) + (tierStats.maxHp || 0),
             defense: (baseStats.defense || 0) + (tierStats.defense || 0)
         };
@@ -223,7 +237,7 @@ function updateBodyRefiningUI() {
         contentBodyRefining.innerHTML = `
             <h2>锻体期 (圆满)</h2>
             <p>肉身已臻化境，已成功筑基。</p>
-            <p>本阶段累计属性: 攻击 +${total.damage}, 生命 +${total.maxHp}, 防御 +${total.defense}</p>
+            <p>本阶段累计属性: 力量 +${total.strength}, 敏捷 +${total.agility}, 生命 +${total.maxHp}, 防御 +${total.defense}</p>
         `;
         return;
     }
@@ -237,7 +251,7 @@ function updateBodyRefiningUI() {
     
     let html = `
         <h2>锻体期 第 ${currentTier} 阶</h2>
-        <p>本阶段累计属性: 攻击 +${currentTotal.damage}, 生命 +${currentTotal.maxHp}, 防御 +${currentTotal.defense}</p>
+        <p>本阶段累计属性: 力量 +${currentTotal.strength}, 敏捷 +${currentTotal.agility}, 生命 +${currentTotal.maxHp}, 防御 +${currentTotal.defense}</p>
     `;
 
     if (nextTier <= maxTier) {
@@ -253,7 +267,7 @@ function updateBodyRefiningUI() {
         html += `
             <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
                 <h3>下一阶: 第 ${nextTier} 阶</h3>
-                <p>升级后累计属性: 攻击 +${nextTotal.damage}, 生命 +${nextTotal.maxHp}, 防御 +${nextTotal.defense}</p>
+                <p>升级后累计属性: 力量 +${nextTotal.strength}, 敏捷 +${nextTotal.agility}, 生命 +${nextTotal.maxHp}, 防御 +${nextTotal.defense}</p>
                 <p>本阶进度: ${currentStageExp} / ${stageTotalCost}</p>
                 <div style="width: 100%; background: #555; height: 10px; border-radius: 5px; margin-top: 5px;">
                     <div style="width: ${percentage}%; background: #FF5722; height: 100%; border-radius: 5px;"></div>
@@ -275,7 +289,7 @@ function updateBodyRefiningUI() {
             <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; border: 1px solid gold;">
                 <h3 style="color: gold;">突破: 筑基期</h3>
                 <p>筑大道之基，脱胎换骨。</p>
-                <p>筑基加成: 攻击 +${bonus.damage}, 生命 +${bonus.maxHp}, 防御 +${bonus.defense}</p>
+                <p>筑基加成: 力量 +${bonus.strength}, 敏捷 +${bonus.agility}, 悟性 +${bonus.comprehension}, 生命 +${bonus.maxHp}, 防御 +${bonus.defense}</p>
                 <p>本阶进度: ${currentStageExp} / ${stageTotalCost}</p>
                 <div style="width: 100%; background: #555; height: 10px; border-radius: 5px; margin-top: 5px;">
                     <div style="width: ${percentage}%; background: gold; height: 100%; border-radius: 5px;"></div>
@@ -302,17 +316,22 @@ btnBreakthroughMortal.addEventListener('click', () => {
 
 // 修炼标签页逻辑
 const tabBtns = document.querySelectorAll('.tab-btn');
-const tabContents = document.querySelectorAll('.tab-content');
 
 tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-        // 移除所有按钮的激活状态
-        tabBtns.forEach(b => b.classList.remove('active'));
-        // 添加当前按钮的激活状态
+        // 找到当前按钮所在的容器 (cultivation-tabs 或 inventory-tabs)
+        const container = btn.parentElement;
+        const contentContainer = container.nextElementSibling; // 假设内容容器是兄弟元素
+        
+        // 在当前容器内移除激活状态
+        const siblingBtns = container.querySelectorAll('.tab-btn');
+        siblingBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
 
-        // 隐藏所有内容
-        tabContents.forEach(c => c.classList.add('hidden'));
+        // 在内容容器内隐藏所有内容
+        const siblingContents = contentContainer.querySelectorAll('.tab-content');
+        siblingContents.forEach(c => c.classList.add('hidden'));
+        
         // 显示选中内容
         const tabId = btn.getAttribute('data-tab');
         const content = document.getElementById(`content-${tabId}`);
@@ -322,17 +341,18 @@ tabBtns.forEach(btn => {
     });
 });
 
-// 武器 UI 元素
-const weaponScreen = document.getElementById('weapon-screen');
-const weaponBtn = document.getElementById('weapon-btn');
-const btnWeaponBackLobby = document.getElementById('btn-weapon-back-lobby');
-const weaponList = document.getElementById('weapon-list');
+// 武器 UI 元素 (已移除独立屏幕，整合进背包)
+// const weaponScreen = document.getElementById('weapon-screen');
+// const weaponBtn = document.getElementById('weapon-btn');
+// const btnWeaponBackLobby = document.getElementById('btn-weapon-back-lobby');
+// const weaponList = document.getElementById('weapon-list');
 
 // 背包 UI 元素
 const inventoryScreen = document.getElementById('inventory-screen');
 const inventoryBtn = document.getElementById('inventory-btn');
 const btnInventoryBackLobby = document.getElementById('btn-inventory-back-lobby');
 const inventoryList = document.getElementById('inventory-list');
+const inventoryWeaponList = document.getElementById('inventory-weapon-list');
 
 // 调试 UI 元素
 const debugScreen = document.getElementById('debug-screen');
@@ -353,7 +373,7 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 // 游戏状态
-let gameState = 'LOBBY'; // LOBBY (大厅), PLAYING (游戏中), GAMEOVER (游戏结束), VICTORY (胜利), UPGRADE (强化), WEAPON (武器库), INVENTORY (背包), PAUSED (暂停)
+let gameState = 'LOBBY'; // LOBBY (大厅), PLAYING (游戏中), GAMEOVER (游戏结束), VICTORY (胜利), UPGRADE (强化), WEAPON (武器库), INVENTORY (背包), PAUSED (暂停), LEVEL_SELECTION (关卡选择)
 
 let totalGold = parseInt(localStorage.getItem('totalGold')) || 0;
 let totalReiki;
@@ -371,17 +391,21 @@ if (localStorage.getItem('totalExp') !== null) {
 let cultivationStage = parseInt(localStorage.getItem('cultivationStage')) || 0; // 0: 凡人, 1: 锻体, ...
 let sessionGold = 0; // 本局获得金币
 let sessionInventory = {}; // 本局获得道具
-let equippedWeaponId = parseInt(localStorage.getItem('equippedWeaponId')) || 1;
+let equippedWeaponId = parseInt(localStorage.getItem('equippedWeaponId')) || 4;
 let inventory = JSON.parse(localStorage.getItem('inventory')) || {}; // { itemId: count }
+let ownedWeapons = JSON.parse(localStorage.getItem('ownedWeapons')) || [4]; // 默认拥有 ID 4 的武器
 
 let currentLevel = 1;
+let maxUnlockedLevel = parseInt(localStorage.getItem('maxUnlockedLevel')) || 1;
 let killCount = 0;
 let monstersSpawned = 0;
-const MONSTERS_PER_LEVEL = 50;
+// const MONSTERS_PER_LEVEL = 50; // Removed in favor of levelConfig
 let hasWon = false;
 
 function getPlayerStats() {
-    let bonusDamage = 0;
+    let bonusStrength = 0;
+    let bonusAgility = 0;
+    let bonusComprehension = 0;
     let bonusHp = 0;
     let bonusDefense = 0;
 
@@ -390,7 +414,9 @@ function getPlayerStats() {
         const stageThreshold = parseInt(stageStr);
         if (cultivationStage >= stageThreshold) {
             const bonus = realmBaseConfig[stageThreshold].stats;
-            bonusDamage += (bonus.damage || 0);
+            bonusStrength += (bonus.strength || 0);
+            bonusAgility += (bonus.agility || 0);
+            bonusComprehension += (bonus.comprehension || 0);
             bonusHp += (bonus.maxHp || 0);
             bonusDefense += (bonus.defense || 0);
         }
@@ -402,14 +428,18 @@ function getPlayerStats() {
         const tier = Math.min(cultivationStage, 9);
         const tierData = bodyRefiningConfig.tiers[tier];
         if (tierData) {
-            bonusDamage += tierData.damage;
+            bonusStrength += (tierData.strength || 0);
+            bonusAgility += (tierData.agility || 0);
+            // bonusComprehension += (tierData.comprehension || 0);
             bonusHp += tierData.maxHp;
             bonusDefense += (tierData.defense || 0);
         }
     }
 
     return {
-        damage: playerConfig.damage + bonusDamage,
+        strength: playerConfig.strength + bonusStrength,
+        agility: playerConfig.agility + bonusAgility,
+        comprehension: playerConfig.comprehension + bonusComprehension,
         defense: playerConfig.defense + bonusDefense,
         maxHp: playerConfig.maxHp + bonusHp
     };
@@ -431,6 +461,7 @@ let bullets = [];
 let monsters = [];
 let ores = []; // 矿石数组
 let floatingTexts = [];
+let attackVisuals = []; // 攻击特效
 const keys = {};
 
 let lastShotTime = 0;
@@ -441,6 +472,59 @@ let monsterIdCounter = 0;
 let burstShotsRemaining = 0;
 let lastBurstTime = 0;
 let burstTargetId = null;
+
+function updateLevelSelectionUI() {
+    if (!levelList) return;
+    levelList.innerHTML = '';
+    
+    const levels = Object.keys(levelConfig).map(Number).sort((a, b) => a - b);
+    
+    levels.forEach(level => {
+        const config = levelConfig[level];
+        const isLocked = level > maxUnlockedLevel;
+        
+        const div = document.createElement('div');
+        div.className = 'upgrade-item';
+        // Grid item styles
+        div.style.width = 'auto'; 
+        div.style.height = '100%';
+        div.style.display = 'flex';
+        div.style.flexDirection = 'column';
+        div.style.justifyContent = 'space-between';
+        div.style.alignItems = 'center';
+        div.style.padding = '10px';
+        div.style.textAlign = 'center';
+        div.style.backgroundColor = isLocked ? 'rgba(50, 50, 50, 0.8)' : 'rgba(0, 0, 0, 0.6)';
+        
+        // Resource info
+        let resourceInfo = '可能掉落:<br>';
+        if (config.resourceTypes && config.resourceTypes.length > 0) {
+            resourceInfo += config.resourceTypes.map(id => itemConfig[id] ? itemConfig[id].name : '未知').join(', ');
+        } else {
+            resourceInfo += '无';
+        }
+
+        div.innerHTML = `
+            <div style="width: 100%;">
+                <h2 style="margin: 0 0 10px 0; font-size: 20px;">第 ${level} 关</h2>
+                <p style="margin: 0 0 10px 0; font-size: 12px; color: #ccc; line-height: 1.3; min-height: 32px;">${resourceInfo}</p>
+            </div>
+            <button ${isLocked ? 'disabled' : ''} onclick="window.selectLevel(${level})" style="background-color: ${isLocked ? '#555' : '#4CAF50'}; margin-top: 5px; width: 100%; padding: 8px 0;">
+                ${isLocked ? '未解锁' : '挑战'}
+            </button>
+        `;
+        levelList.appendChild(div);
+    });
+}
+
+window.selectLevel = (level) => {
+    currentLevel = level;
+    levelSelectionScreen.classList.add('hidden');
+    initGame();
+    gameState = 'PLAYING';
+    pauseBtn.classList.remove('hidden');
+    levelClearedOverlay.classList.add('hidden');
+};
 
 function initGame() {
     const stats = getPlayerStats();
@@ -513,52 +597,113 @@ function updatePlayerStatsDisplay() {
     const stats = getPlayerStats();
     
     const hpEl = document.getElementById('stat-hp');
-    const damageEl = document.getElementById('stat-damage');
+    const strengthEl = document.getElementById('stat-strength');
+    const agilityEl = document.getElementById('stat-agility');
+    const comprehensionEl = document.getElementById('stat-comprehension');
     const defenseEl = document.getElementById('stat-defense');
     const speedEl = document.getElementById('stat-speed');
 
     if (hpEl) hpEl.textContent = stats.maxHp;
-    if (damageEl) damageEl.textContent = stats.damage.toFixed(1);
+    if (strengthEl) strengthEl.textContent = stats.strength;
+    if (agilityEl) agilityEl.textContent = stats.agility;
+    if (comprehensionEl) comprehensionEl.textContent = stats.comprehension;
     if (defenseEl) defenseEl.textContent = stats.defense;
     if (speedEl) speedEl.textContent = playerConfig.speed;
 }
 
-function updateWeaponUI() {
-    weaponList.innerHTML = '';
+function updateForgingUI() {
+    const content = document.getElementById('content-mortal-weapon');
+    if (!content) return;
+    
+    content.innerHTML = '';
+    
     for (const id in weaponConfig) {
         const weapon = weaponConfig[id];
-        const isEquipped = parseInt(id) === equippedWeaponId;
+        const weaponId = parseInt(id);
         
-        let typeInfo = '';
-        if (weapon.type === 'bounce') {
-            typeInfo = `<p>类型: 弹射</p><p>弹射次数: ${weapon.bounceCount}</p>`;
-        } else {
-            typeInfo = `<p>类型: 穿透</p><p>穿透次数: ${weapon.penetration}</p>`;
-        }
-
+        // Skip if already owned? Or show "Owned"?
+        const isOwned = ownedWeapons.includes(weaponId);
+        
+        // Only show weapons that have crafting info
+        if (!weapon.crafting) continue; 
+        
         const div = document.createElement('div');
         div.className = 'upgrade-item';
+        
+        let materialHtml = '<div style="margin: 10px 0; text-align: left; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 5px;">';
+        let canCraft = true;
+        
+        for (const matId in weapon.crafting.materials) {
+            const required = weapon.crafting.materials[matId];
+            const owned = inventory[matId] || 0;
+            const matName = itemConfig[matId] ? itemConfig[matId].name : `未知物品${matId}`;
+            const color = owned >= required ? '#4CAF50' : '#f44336';
+            
+            materialHtml += `<p style="color: ${color}; margin: 2px 0;">${matName}: ${owned}/${required}</p>`;
+            if (owned < required) canCraft = false;
+        }
+        materialHtml += '</div>';
+        
+        let btnHtml = '';
+        if (isOwned) {
+            btnHtml = `<button disabled style="background-color: #555;">已拥有</button>`;
+        } else {
+            btnHtml = `<button ${canCraft ? '' : 'disabled'} onclick="window.forgeWeapon(${id})" style="background-color: ${canCraft ? '#FF9800' : '#555'};">
+                ${canCraft ? '锻造' : '材料不足'}
+            </button>`;
+        }
+        
         div.innerHTML = `
             <h2>${weapon.name}</h2>
             ${weapon.iconPath ? `<img src="${weapon.iconPath}" alt="${weapon.name}" style="width: 64px; height: 64px; display: block; margin: 0 auto 10px auto;">` : ''}
-            ${typeInfo}
-            <p>伤害倍率: ${weapon.damageMultiplier * 100}%</p>
-            <p>射速: ${weapon.fireRate}ms</p>
-            <p>弹丸数: ${weapon.projectileCount}</p>
-            <p>连射数: ${weapon.burstCount || 1}</p>
-            <button ${isEquipped ? 'disabled' : ''} onclick="window.equipWeapon(${id})">
-                ${isEquipped ? '已装备' : '装备'}
-            </button>
+            <p>伤害: 力量 x ${(weapon.damageMultiplier * 100).toFixed(0)}%</p>
+            ${materialHtml}
+            ${btnHtml}
         `;
-        weaponList.appendChild(div);
+        content.appendChild(div);
+    }
+    
+    if (content.children.length === 0) {
+        content.innerHTML = '<p>暂无可锻造的凡器。</p>';
     }
 }
+
+window.forgeWeapon = (id) => {
+    const weapon = weaponConfig[id];
+    if (!weapon || !weapon.crafting) return;
+    
+    // Check materials again
+    for (const matId in weapon.crafting.materials) {
+        const required = weapon.crafting.materials[matId];
+        const owned = inventory[matId] || 0;
+        if (owned < required) {
+            showNotification('材料不足！');
+            return;
+        }
+    }
+    
+    // Consume materials
+    for (const matId in weapon.crafting.materials) {
+        const required = weapon.crafting.materials[matId];
+        inventory[matId] -= required;
+    }
+    localStorage.setItem('inventory', JSON.stringify(inventory));
+    
+    // Add weapon
+    ownedWeapons.push(parseInt(id));
+    localStorage.setItem('ownedWeapons', JSON.stringify(ownedWeapons));
+    
+    showNotification(`锻造成功: ${weapon.name}`);
+    updateForgingUI();
+    // 如果背包界面开着，也更新一下
+    if (typeof updateInventoryUI === 'function') updateInventoryUI();
+};
 
 // 将装备函数暴露给 window 以便 onclick 调用
 window.equipWeapon = (id) => {
     equippedWeaponId = id;
     localStorage.setItem('equippedWeaponId', id);
-    updateWeaponUI();
+    updateInventoryUI(); // 更新背包界面
     updatePlayerStatsDisplay();
 };
 
@@ -575,14 +720,52 @@ if (testAddExpBtn) {
     });
 }
 
+if (debugUnlockLevelsBtn) {
+    debugUnlockLevelsBtn.addEventListener('click', () => {
+        maxUnlockedLevel = 30;
+        localStorage.setItem('maxUnlockedLevel', maxUnlockedLevel);
+        showNotification('已解锁所有关卡 (30关)');
+    });
+}
+
+// 初始化调试道具下拉框
+if (debugItemSelect) {
+    for (const id in itemConfig) {
+        const item = itemConfig[id];
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = item.name;
+        debugItemSelect.appendChild(option);
+    }
+}
+
+if (debugAddItemBtn) {
+    debugAddItemBtn.addEventListener('click', () => {
+        const itemId = parseInt(debugItemSelect.value);
+        const count = parseInt(debugItemCount.value);
+        
+        if (!isNaN(itemId) && !isNaN(count) && count > 0) {
+            addItem(itemId, count);
+            updateInventoryUI(); // 确保 UI 及时更新
+            showNotification(`测试: 添加了 ${count} 个 ${itemConfig[itemId].name}`);
+        } else {
+            showNotification('请输入有效的数量');
+        }
+    });
+}
+
 // UI 事件监听器
 startBtn.addEventListener('click', () => {
-    currentLevel = 1; // 新游戏从第1关开始
-    initGame();
-    gameState = 'PLAYING';
+    gameState = 'LEVEL_SELECTION';
     startScreen.classList.add('hidden');
-    pauseBtn.classList.remove('hidden');
-    levelClearedOverlay.classList.add('hidden');
+    levelSelectionScreen.classList.remove('hidden');
+    updateLevelSelectionUI();
+});
+
+btnBackLobbyLevels.addEventListener('click', () => {
+    gameState = 'LOBBY';
+    levelSelectionScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
 });
 
 upgradeBtn.addEventListener('click', () => {
@@ -605,18 +788,28 @@ upgradeBtn.addEventListener('click', () => {
     }
 });
 
-weaponBtn.addEventListener('click', () => {
-    gameState = 'WEAPON';
+forgingBtn.addEventListener('click', () => {
     startScreen.classList.add('hidden');
-    weaponScreen.classList.remove('hidden');
-    updateWeaponUI();
+    forgingScreen.classList.remove('hidden');
+    updateForgingUI();
 });
+
+// weaponBtn.addEventListener('click', () => {
+//     gameState = 'WEAPON';
+//     startScreen.classList.add('hidden');
+//     weaponScreen.classList.remove('hidden');
+//     updateWeaponUI();
+// });
 
 inventoryBtn.addEventListener('click', () => {
     gameState = 'INVENTORY';
     startScreen.classList.add('hidden');
     inventoryScreen.classList.remove('hidden');
     updateInventoryUI(); 
+    
+    // 默认选中第一个标签页
+    const firstTab = inventoryScreen.querySelector('.tab-btn');
+    if (firstTab) firstTab.click();
 });
 
 debugBtn.addEventListener('click', () => {
@@ -645,17 +838,16 @@ btnBackLobby.addEventListener('click', () => {
     updatePlayerStatsDisplay();
 });
 
-btnWeaponBackLobby.addEventListener('click', () => {
-    gameState = 'LOBBY';
-    weaponScreen.classList.add('hidden');
+btnBackLobbyForging.addEventListener('click', () => {
+    forgingScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
-    updatePlayerStatsDisplay();
 });
 
 btnInventoryBackLobby.addEventListener('click', () => {
     gameState = 'LOBBY';
     inventoryScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
+    updatePlayerStatsDisplay();
 });
 
 btnCloseDebug.addEventListener('click', () => {
@@ -860,9 +1052,10 @@ function updatePlayerMovement() {
 
 function updateSpawning(timestamp) {
     // 检查是否已达到本关最大生成数量
-    if (monstersSpawned >= MONSTERS_PER_LEVEL) return;
+    const config = levelConfig[currentLevel] || levelConfig[1];
+    const maxMonsters = config.winKillCount || 50;
+    if (monstersSpawned >= maxMonsters) return;
 
-    const config = levelConfig[currentLevel] || levelConfig[3]; // 默认为第3关
     if (timestamp - lastSpawnTime > config.spawnRate) {
         spawnMonster();
         lastSpawnTime = timestamp;
@@ -872,6 +1065,136 @@ function updateSpawning(timestamp) {
 function updateShooting(timestamp) {
     // 自动射击
     const weapon = weaponConfig[equippedWeaponId];
+
+    if (weapon.type === 'melee') {
+        if (timestamp - lastShotTime > weapon.fireRate) {
+            const target = getNearestMonster();
+            if (target) {
+                const dx = target.x - player.x;
+                const dy = target.y - player.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const facingAngle = Math.atan2(dy, dx);
+                
+                // Melee range check (primary target)
+                if (dist <= (weapon.range || 100)) {
+                    lastShotTime = timestamp;
+                    
+                    // Define attack properties
+                    const range = weapon.range || 100;
+                    const sweepAngle = (weapon.angle || 0) * (Math.PI / 180); // Convert to radians
+                    
+                    // Visual effect for sweep
+                    attackVisuals.push({
+                        x: player.x,
+                        y: player.y,
+                        angle: facingAngle,
+                        radius: range,
+                        sweepAngle: sweepAngle,
+                        life: 0.2, // duration in seconds
+                        maxLife: 0.2
+                    });
+
+                    // Find all targets in sector
+                    const targetsToHit = [];
+                    
+                    if (sweepAngle > 0) {
+                        // Sweep logic
+                        for (const m of monsters) {
+                            const mdx = m.x - player.x;
+                            const mdy = m.y - player.y;
+                            const mDist = Math.sqrt(mdx * mdx + mdy * mdy);
+                            
+                            if (mDist <= range) {
+                                const mAngle = Math.atan2(mdy, mdx);
+                                let angleDiff = mAngle - facingAngle;
+                                
+                                // Normalize angle difference to -PI to PI
+                                while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+                                while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+                                
+                                if (Math.abs(angleDiff) <= sweepAngle / 2) {
+                                    targetsToHit.push(m);
+                                }
+                            }
+                        }
+                    } else {
+                        // Single target logic (fallback or if angle is 0)
+                        targetsToHit.push(target);
+                    }
+
+                    const stats = getPlayerStats();
+                    const damage = Math.floor(stats.strength * weapon.damageMultiplier);
+
+                    targetsToHit.forEach(t => {
+                        const actualDamage = Math.max(1, damage - (t.defense || 0));
+                        t.hp -= actualDamage;
+
+                        // Visual feedback
+                        floatingTexts.push({
+                            x: t.x,
+                            y: t.y - 20,
+                            text: `-${actualDamage}`,
+                            life: 0.5,
+                            color: '#fff'
+                        });
+
+                        // Death logic
+                        if (t.hp <= 0) {
+                            const mIndex = monsters.indexOf(t);
+                            if (mIndex > -1) {
+                                monsters.splice(mIndex, 1);
+                                
+                                const goldDrop = Math.floor(Math.random() * (t.goldMax - t.goldMin + 1)) + t.goldMin;
+                                sessionGold += goldDrop;
+                                
+                                floatingTexts.push({
+                                    x: t.x,
+                                    y: t.y,
+                                    text: `+${goldDrop}`,
+                                    life: 1.0,
+                                    color: 'gold'
+                                });
+                                
+                                killCount++;
+                                
+                                const config = levelConfig[currentLevel] || levelConfig[1];
+                                const winKillCount = config.winKillCount || 50;
+                                if (!hasWon && killCount >= winKillCount) {
+                                    hasWon = true;
+                                    if (currentLevel === maxUnlockedLevel) {
+                                        maxUnlockedLevel++;
+                                        localStorage.setItem('maxUnlockedLevel', maxUnlockedLevel);
+                                    }
+                                    totalGold += sessionGold;
+                                    localStorage.setItem('totalGold', totalGold);
+                                    const winExp = config.winExp || 0;
+                                    addExperience(winExp);
+                                    
+                                    let itemRewardStr = "";
+                                    const sessionItemIds = Object.keys(sessionInventory);
+                                    if (sessionItemIds.length > 0) {
+                                        itemRewardStr = " | 获得道具: ";
+                                        const items = [];
+                                        sessionItemIds.forEach(id => {
+                                            const count = sessionInventory[id];
+                                            const item = itemConfig[id];
+                                            items.push(`${item.name} x${count}`);
+                                        });
+                                        itemRewardStr += items.join(", ");
+                                    }
+                                    persistSessionItems();
+                                    levelRewardDisplay.textContent = `获得金币: ${sessionGold} | 获得经验: ${winExp}${itemRewardStr}`;
+                                    levelClearedOverlay.classList.remove('hidden');
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+        return;
+    }
+
     if (timestamp - lastShotTime > weapon.fireRate) {
         const target = getNearestMonster();
         if (target) {
@@ -1040,11 +1363,18 @@ function handleBulletHit(bullet, monster, bulletIndex) {
             
             killCount++;
 
-            const config = levelConfig[currentLevel] || levelConfig[3];
-            // 检查是否击杀所有怪物 (固定50只)
-            if (!hasWon && killCount >= MONSTERS_PER_LEVEL) {
+            const config = levelConfig[currentLevel] || levelConfig[1];
+            const winKillCount = config.winKillCount || 50;
+            // 检查是否击杀所有怪物
+            if (!hasWon && killCount >= winKillCount) {
                 hasWon = true;
                 
+                // 更新最大解锁关卡
+                if (currentLevel === maxUnlockedLevel) {
+                    maxUnlockedLevel++;
+                    localStorage.setItem('maxUnlockedLevel', maxUnlockedLevel);
+                }
+
                 // 存储金币
                 totalGold += sessionGold;
                 localStorage.setItem('totalGold', totalGold);
@@ -1204,7 +1534,8 @@ function shootTarget(target) {
 
     const stats = getPlayerStats();
     const weapon = weaponConfig[equippedWeaponId];
-    const finalDamage = stats.damage * weapon.damageMultiplier;
+    // 伤害计算：力量 * 武器倍率
+    const finalDamage = stats.strength * weapon.damageMultiplier;
 
     if (weapon.type === 'bounce') {
         bullets.push({
@@ -1295,24 +1626,34 @@ function drawWeapon() {
 
 // 矿石相关逻辑
 function spawnOres() {
-    // 每关随机生成 3-5 个铁矿
-    const count = Math.floor(Math.random() * 3) + 3;
-    for (let i = 0; i < count; i++) {
-        // 目前只生成 ID 为 1 的铁矿
-        const config = oreConfig[1];
+    let instanceIdCounter = 0;
+    const config = levelConfig[currentLevel] || levelConfig[1];
+    
+    const min = config.resourceMin || 3;
+    const max = config.resourceMax || 5;
+    const types = config.resourceTypes || [1];
+
+    const totalCount = Math.floor(Math.random() * (max - min + 1)) + min;
+
+    for (let i = 0; i < totalCount; i++) {
+        const typeId = types[Math.floor(Math.random() * types.length)];
+        const oreConf = oreConfig[typeId];
+        
+        if (!oreConf) continue;
+
         ores.push({
-            instanceId: i,
-            configId: config.id,
+            instanceId: instanceIdCounter++,
+            configId: oreConf.id,
             x: Math.random() * (canvas.width - 100) + 50,
             y: Math.random() * (canvas.height - 100) + 50,
-            size: config.size,
-            color: config.color,
-            capacity: config.maxCapacity,
-            maxCapacity: config.maxCapacity,
+            size: oreConf.size,
+            color: oreConf.color,
+            capacity: oreConf.maxCapacity,
+            maxCapacity: oreConf.maxCapacity,
             miningProgress: 0,
-            miningTime: config.miningTime,
-            miningRange: config.miningRange || 60,
-            productId: config.productId,
+            miningTime: oreConf.miningTime,
+            miningRange: oreConf.miningRange || 60,
+            productId: oreConf.productId,
             isMining: false
         });
     }
@@ -1410,6 +1751,11 @@ function addItem(itemId, count) {
 }
 
 function updateInventoryUI() {
+    updateInventoryItemsUI();
+    updateInventoryWeaponsUI();
+}
+
+function updateInventoryItemsUI() {
     inventoryList.innerHTML = '';
     const itemIds = Object.keys(inventory);
     
@@ -1436,6 +1782,57 @@ function updateInventoryUI() {
             inventoryList.appendChild(div);
         }
     });
+}
+
+function updateInventoryWeaponsUI() {
+    if (!inventoryWeaponList) return;
+    inventoryWeaponList.innerHTML = '';
+    
+    for (const id in weaponConfig) {
+        const weapon = weaponConfig[id];
+        const weaponId = parseInt(id);
+        
+        // 仅显示已拥有的武器
+        if (!ownedWeapons.includes(weaponId)) {
+            continue;
+        }
+
+        const isEquipped = weaponId === equippedWeaponId;
+        const isOwned = true; // 既然过滤了，这里肯定是 true
+        
+        let typeInfo = '';
+        if (weapon.type === 'bounce') {
+            typeInfo = `<p>类型: 弹射</p><p>弹射次数: ${weapon.bounceCount}</p>`;
+        } else if (weapon.type === 'melee') {
+            typeInfo = `<p>类型: 近战</p><p>范围: ${weapon.range || 100}</p>`;
+        } else {
+            typeInfo = `<p>类型: 穿透</p><p>穿透次数: ${weapon.penetration}</p>`;
+        }
+
+        const div = document.createElement('div');
+        div.className = 'upgrade-item';
+        
+        let buttonHtml = '';
+        if (isOwned) {
+            buttonHtml = `<button ${isEquipped ? 'disabled' : ''} onclick="window.equipWeapon(${id})">
+                ${isEquipped ? '已装备' : '装备'}
+            </button>`;
+        } else {
+            buttonHtml = `<button disabled style="background-color: #555;">未拥有 (请前往锻造)</button>`;
+        }
+
+        div.innerHTML = `
+            <h2>${weapon.name}</h2>
+            ${weapon.iconPath ? `<img src="${weapon.iconPath}" alt="${weapon.name}" style="width: 64px; height: 64px; display: block; margin: 0 auto 10px auto;">` : ''}
+            ${typeInfo}
+            <p>伤害: 力量 x ${(weapon.damageMultiplier * 100).toFixed(0)}%</p>
+            <p>射速: ${weapon.fireRate}ms</p>
+            <p>弹丸数: ${weapon.projectileCount || '-'}</p>
+            <p>连射数: ${weapon.burstCount || 1}</p>
+            ${buttonHtml}
+        `;
+        inventoryWeaponList.appendChild(div);
+    }
 }
 
 // 渲染
@@ -1511,6 +1908,20 @@ function draw() {
                 ctx.fill();
                 ctx.closePath();
             }
+
+            // Layer 3.5: Attack Visuals (Melee Sweep)
+            for (let i = attackVisuals.length - 1; i >= 0; i--) {
+                const v = attackVisuals[i];
+                ctx.beginPath();
+                ctx.moveTo(v.x, v.y);
+                ctx.arc(v.x, v.y, v.radius, v.angle - v.sweepAngle / 2, v.angle + v.sweepAngle / 2);
+                ctx.lineTo(v.x, v.y);
+                ctx.fillStyle = `rgba(255, 255, 255, ${v.life / v.maxLife * 0.5})`;
+                ctx.fill();
+                
+                v.life -= 0.016; // approx per frame
+                if (v.life <= 0) attackVisuals.splice(i, 1);
+            }
         }
 
         // Layer 4: Player (Top)
@@ -1534,12 +1945,14 @@ function draw() {
 
         // Layer 5: UI Overlay
         if (gameState !== 'LOBBY') {
+            const config = levelConfig[currentLevel] || levelConfig[1];
+            const maxKills = config.winKillCount || 50;
             // 绘制击杀数
             ctx.fillStyle = 'white';
             ctx.font = '20px Arial';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'top';
-            ctx.fillText(`击杀: ${killCount} / ${MONSTERS_PER_LEVEL} (关卡 ${currentLevel})`, 20, 20);
+            ctx.fillText(`击杀: ${killCount} / ${maxKills} (关卡 ${currentLevel})`, 20, 20);
 
             // 绘制本局金币
             ctx.fillStyle = 'gold';

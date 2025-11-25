@@ -1,17 +1,32 @@
 export const levelConfig = {
-    1: {
-        spawnRate: 60000 / 100, // 每分钟 100 只怪物
-        winKillCount: 10,
-        winExp: 50
-    },
-    2: {
-        spawnRate: 60000 / 100,
-        winKillCount: 10,
-        winExp: 100
-    },
-    3: {
-        spawnRate: 60000 / 100,
-        winKillCount: 10,
-        winExp: 200
-    }
+    1: { spawnRate: 600, winKillCount: 12, winExp: 50, resourceMin: 3, resourceMax: 6, resourceTypes: [1, 2, 3] },
+    2: { spawnRate: 600, winKillCount: 14, winExp: 100, resourceMin: 3, resourceMax: 6, resourceTypes: [1, 2, 3] },
+    3: { spawnRate: 600, winKillCount: 16, winExp: 150, resourceMin: 4, resourceMax: 7, resourceTypes: [1, 2, 3] },
+    4: { spawnRate: 600, winKillCount: 18, winExp: 200, resourceMin: 4, resourceMax: 7, resourceTypes: [1, 2, 3] },
+    5: { spawnRate: 600, winKillCount: 20, winExp: 250, resourceMin: 4, resourceMax: 7, resourceTypes: [1, 2, 3] },
+    6: { spawnRate: 600, winKillCount: 22, winExp: 300, resourceMin: 5, resourceMax: 8, resourceTypes: [1, 2, 3] },
+    7: { spawnRate: 600, winKillCount: 24, winExp: 350, resourceMin: 5, resourceMax: 8, resourceTypes: [1, 2, 3] },
+    8: { spawnRate: 600, winKillCount: 26, winExp: 400, resourceMin: 5, resourceMax: 8, resourceTypes: [1, 2, 3] },
+    9: { spawnRate: 600, winKillCount: 28, winExp: 450, resourceMin: 6, resourceMax: 9, resourceTypes: [1, 2, 3] },
+    10: { spawnRate: 600, winKillCount: 30, winExp: 500, resourceMin: 6, resourceMax: 9, resourceTypes: [1, 2, 3] },
+    11: { spawnRate: 600, winKillCount: 32, winExp: 550, resourceMin: 6, resourceMax: 9, resourceTypes: [1, 2, 3] },
+    12: { spawnRate: 600, winKillCount: 34, winExp: 600, resourceMin: 7, resourceMax: 10, resourceTypes: [1, 2, 3] },
+    13: { spawnRate: 600, winKillCount: 36, winExp: 650, resourceMin: 7, resourceMax: 10, resourceTypes: [1, 2, 3] },
+    14: { spawnRate: 600, winKillCount: 38, winExp: 700, resourceMin: 7, resourceMax: 10, resourceTypes: [1, 2, 3] },
+    15: { spawnRate: 600, winKillCount: 40, winExp: 750, resourceMin: 8, resourceMax: 11, resourceTypes: [1, 2, 3] },
+    16: { spawnRate: 600, winKillCount: 42, winExp: 800, resourceMin: 8, resourceMax: 11, resourceTypes: [1, 2, 3] },
+    17: { spawnRate: 600, winKillCount: 44, winExp: 850, resourceMin: 8, resourceMax: 11, resourceTypes: [1, 2, 3] },
+    18: { spawnRate: 600, winKillCount: 46, winExp: 900, resourceMin: 9, resourceMax: 12, resourceTypes: [1, 2, 3] },
+    19: { spawnRate: 600, winKillCount: 48, winExp: 950, resourceMin: 9, resourceMax: 12, resourceTypes: [1, 2, 3] },
+    20: { spawnRate: 600, winKillCount: 50, winExp: 1000, resourceMin: 9, resourceMax: 12, resourceTypes: [1, 2, 3] },
+    21: { spawnRate: 600, winKillCount: 52, winExp: 1050, resourceMin: 10, resourceMax: 13, resourceTypes: [1, 2, 3] },
+    22: { spawnRate: 600, winKillCount: 54, winExp: 1100, resourceMin: 10, resourceMax: 13, resourceTypes: [1, 2, 3] },
+    23: { spawnRate: 600, winKillCount: 56, winExp: 1150, resourceMin: 10, resourceMax: 13, resourceTypes: [1, 2, 3] },
+    24: { spawnRate: 600, winKillCount: 58, winExp: 1200, resourceMin: 11, resourceMax: 14, resourceTypes: [1, 2, 3] },
+    25: { spawnRate: 600, winKillCount: 60, winExp: 1250, resourceMin: 11, resourceMax: 14, resourceTypes: [1, 2, 3] },
+    26: { spawnRate: 600, winKillCount: 62, winExp: 1300, resourceMin: 11, resourceMax: 14, resourceTypes: [1, 2, 3] },
+    27: { spawnRate: 600, winKillCount: 64, winExp: 1350, resourceMin: 12, resourceMax: 15, resourceTypes: [1, 2, 3] },
+    28: { spawnRate: 600, winKillCount: 66, winExp: 1400, resourceMin: 12, resourceMax: 15, resourceTypes: [1, 2, 3] },
+    29: { spawnRate: 600, winKillCount: 68, winExp: 1450, resourceMin: 12, resourceMax: 15, resourceTypes: [1, 2, 3] },
+    30: { spawnRate: 600, winKillCount: 70, winExp: 1500, resourceMin: 13, resourceMax: 16, resourceTypes: [1, 2, 3] },
 };

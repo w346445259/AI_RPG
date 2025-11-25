@@ -124,6 +124,8 @@ button:hover {
 .upgrade-container {
     display: flex;
     gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .upgrade-item {
@@ -206,6 +208,30 @@ button:hover {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
+}
+
+.forging-container {
+    display: flex;
+    width: 80%;
+    height: 60%;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.forging-tabs {
+    width: 150px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.forging-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    text-align: left;
 }
 
 .tab-content {
