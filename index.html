@@ -138,9 +138,12 @@
         </div>
 
         <div id="confirm-quit-modal" class="screen hidden" style="background: rgba(0,0,0,0.8); z-index: 30;">
-            <div style="background: #333; padding: 30px; border-radius: 10px; text-align: center; border: 1px solid #555;">
+            <div style="background: #333; padding: 30px; border-radius: 10px; text-align: center; border: 1px solid #555; max-width: 500px;">
                 <h2>确认退出?</h2>
-                <p style="color: #ff4444; margin: 20px 0;">退出将损失本局获得的所有金币!</p>
+                <p style="color: #ff4444; margin: 20px 0;">退出将损失本局获得的所有道具!</p>
+                <div id="session-items-list" style="background: #222; padding: 15px; border-radius: 5px; margin: 20px 0; max-height: 200px; overflow-y: auto; text-align: left;">
+                    <!-- 动态显示本局获得的道具 -->
+                </div>
                 <div style="display: flex; justify-content: center; gap: 20px;">
                     <button id="confirm-quit-yes" style="background-color: #f44336;">确认退出</button>
                     <button id="confirm-quit-no" style="background-color: #607D8B;">取消</button>

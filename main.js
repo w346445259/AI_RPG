@@ -347,6 +347,7 @@ const quitLobbyBtn = document.getElementById('quit-lobby-btn');
 const confirmQuitModal = document.getElementById('confirm-quit-modal');
 const confirmQuitYes = document.getElementById('confirm-quit-yes');
 const confirmQuitNo = document.getElementById('confirm-quit-no');
+const sessionItemsList = document.getElementById('session-items-list');
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -749,6 +750,39 @@ resumeBtn.addEventListener('click', () => {
 });
 
 quitLobbyBtn.addEventListener('click', () => {
+    // 显示本局获得的道具列表
+    sessionItemsList.innerHTML = '';
+    
+    const sessionItemIds = Object.keys(sessionInventory);
+    const sessionGoldAmount = sessionGold;
+    
+    if (sessionItemIds.length === 0 && sessionGoldAmount === 0) {
+        sessionItemsList.innerHTML = '<p style="color: #888; text-align: center;">本局暂无获得任何道具或金币</p>';
+    } else {
+        let itemsHTML = '<div style="color: #fff;">';
+        
+        // 显示金币
+        if (sessionGoldAmount > 0) {
+            itemsHTML += `<div style="margin: 5px 0; padding: 5px; background: #444; border-radius: 3px;">`;
+            itemsHTML += `<span style="color: #ffd700;">💰 金币</span>: <span style="color: #ffd700;">${sessionGoldAmount}</span>`;
+            itemsHTML += `</div>`;
+        }
+        
+        // 显示道具
+        sessionItemIds.forEach(itemId => {
+            const item = itemConfig[itemId];
+            const count = sessionInventory[itemId];
+            if (item && count > 0) {
+                itemsHTML += `<div style="margin: 5px 0; padding: 5px; background: #444; border-radius: 3px;">`;
+                itemsHTML += `<span>${item.icon || '📦'} ${item.name}</span>: <span style="color: #4CAF50;">×${count}</span>`;
+                itemsHTML += `</div>`;
+            }
+        });
+        
+        itemsHTML += '</div>';
+        sessionItemsList.innerHTML = itemsHTML;
+    }
+    
     confirmQuitModal.classList.remove('hidden');
 });
 
