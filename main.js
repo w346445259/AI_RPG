@@ -3,6 +3,8 @@ import { monsterConfig } from './config/monsterConfig.js';
 import { levelConfig } from './config/spawnConfig.js';
 import { weaponConfig } from './config/weaponConfig.js';
 import { bodyRefiningConfig, realmBaseConfig } from './config/cultivationConfig.js';
+import { itemConfig } from './config/itemConfig.js';
+import { oreConfig } from './config/oreConfig.js';
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -14,8 +16,13 @@ const victoryScreen = document.getElementById('victory-screen');
 const startBtn = document.getElementById('start-btn');
 const restartBtn = document.getElementById('restart-btn');
 const lobbyBtn = document.getElementById('lobby-btn');
-const continueBtn = document.getElementById('continue-btn');
-const victoryLobbyBtn = document.getElementById('victory-lobby-btn');
+// const continueBtn = document.getElementById('continue-btn'); // 已废弃
+// const victoryLobbyBtn = document.getElementById('victory-lobby-btn'); // 已废弃
+const levelClearedOverlay = document.getElementById('level-cleared-overlay');
+const overlayLobbyBtn = document.getElementById('overlay-lobby-btn');
+const overlayNextLevelBtn = document.getElementById('overlay-next-level-btn');
+const levelRewardDisplay = document.getElementById('level-reward-display');
+
 const goldDisplay = document.getElementById('gold-display');
 const reikiDisplay = document.getElementById('reiki-display');
 const expDisplay = document.getElementById('exp-display');
@@ -321,6 +328,17 @@ const weaponBtn = document.getElementById('weapon-btn');
 const btnWeaponBackLobby = document.getElementById('btn-weapon-back-lobby');
 const weaponList = document.getElementById('weapon-list');
 
+// 背包 UI 元素
+const inventoryScreen = document.getElementById('inventory-screen');
+const inventoryBtn = document.getElementById('inventory-btn');
+const btnInventoryBackLobby = document.getElementById('btn-inventory-back-lobby');
+const inventoryList = document.getElementById('inventory-list');
+
+// 调试 UI 元素
+const debugScreen = document.getElementById('debug-screen');
+const debugBtn = document.getElementById('debug-btn');
+const btnCloseDebug = document.getElementById('btn-close-debug');
+
 // 暂停 UI 元素
 const pauseBtn = document.getElementById('pause-btn');
 const pauseScreen = document.getElementById('pause-screen');
@@ -334,7 +352,7 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 // 游戏状态
-let gameState = 'LOBBY'; // LOBBY (大厅), PLAYING (游戏中), GAMEOVER (游戏结束), VICTORY (胜利), UPGRADE (强化), WEAPON (武器库), PAUSED (暂停)
+let gameState = 'LOBBY'; // LOBBY (大厅), PLAYING (游戏中), GAMEOVER (游戏结束), VICTORY (胜利), UPGRADE (强化), WEAPON (武器库), INVENTORY (背包), PAUSED (暂停)
 
 let totalGold = parseInt(localStorage.getItem('totalGold')) || 0;
 let totalReiki;
@@ -351,10 +369,14 @@ if (localStorage.getItem('totalExp') !== null) {
 }
 let cultivationStage = parseInt(localStorage.getItem('cultivationStage')) || 0; // 0: 凡人, 1: 锻体, ...
 let sessionGold = 0; // 本局获得金币
+let sessionInventory = {}; // 本局获得道具
 let equippedWeaponId = parseInt(localStorage.getItem('equippedWeaponId')) || 1;
+let inventory = JSON.parse(localStorage.getItem('inventory')) || {}; // { itemId: count }
 
 let currentLevel = 1;
 let killCount = 0;
+let monstersSpawned = 0;
+const MONSTERS_PER_LEVEL = 50;
 let hasWon = false;
 
 function getPlayerStats() {
@@ -406,6 +428,7 @@ let player = {
 
 let bullets = [];
 let monsters = [];
+let ores = []; // 矿石数组
 let floatingTexts = [];
 const keys = {};
 
@@ -428,12 +451,18 @@ function initGame() {
     
     bullets = [];
     monsters = [];
+    ores = [];
     floatingTexts = [];
     monsterIdCounter = 0;
     killCount = 0;
+    monstersSpawned = 0;
     sessionGold = 0;
+    sessionInventory = {};
     hasWon = false;
-    currentLevel = 1;
+    
+    spawnOres(); // 生成矿石
+
+    // currentLevel = 1; // 不重置关卡，除非是完全重新开始游戏，这里 initGame 可能是重新开始或下一关
     
     // 重置连发状态
     burstShotsRemaining = 0;
@@ -547,10 +576,12 @@ if (testAddExpBtn) {
 
 // UI 事件监听器
 startBtn.addEventListener('click', () => {
+    currentLevel = 1; // 新游戏从第1关开始
     initGame();
     gameState = 'PLAYING';
     startScreen.classList.add('hidden');
     pauseBtn.classList.remove('hidden');
+    levelClearedOverlay.classList.add('hidden');
 });
 
 upgradeBtn.addEventListener('click', () => {
@@ -578,6 +609,18 @@ weaponBtn.addEventListener('click', () => {
     startScreen.classList.add('hidden');
     weaponScreen.classList.remove('hidden');
     updateWeaponUI();
+});
+
+inventoryBtn.addEventListener('click', () => {
+    gameState = 'INVENTORY';
+    startScreen.classList.add('hidden');
+    inventoryScreen.classList.remove('hidden');
+    updateInventoryUI(); 
+});
+
+debugBtn.addEventListener('click', () => {
+    // 不改变 gameState，只显示弹窗
+    debugScreen.classList.remove('hidden');
 });
 
 if (clearDataBtn) {
@@ -608,15 +651,27 @@ btnWeaponBackLobby.addEventListener('click', () => {
     updatePlayerStatsDisplay();
 });
 
+btnInventoryBackLobby.addEventListener('click', () => {
+    gameState = 'LOBBY';
+    inventoryScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+});
+
+btnCloseDebug.addEventListener('click', () => {
+    debugScreen.classList.add('hidden');
+});
+
 // 加载时初始化金币显示
 updateGoldDisplay();
 updatePlayerStatsDisplay();
 
 restartBtn.addEventListener('click', () => {
+    currentLevel = 1;
     initGame();
     gameState = 'PLAYING';
     gameOverScreen.classList.add('hidden');
     pauseBtn.classList.remove('hidden');
+    levelClearedOverlay.classList.add('hidden');
 });
 
     lobbyBtn.addEventListener('click', () => {
@@ -624,6 +679,7 @@ restartBtn.addEventListener('click', () => {
     gameOverScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
     pauseBtn.classList.add('hidden');
+    levelClearedOverlay.classList.add('hidden');
     updateGoldDisplay();
     updatePlayerStatsDisplay();
     
@@ -635,31 +691,33 @@ restartBtn.addEventListener('click', () => {
     player.maxHp = stats.maxHp;
 });
 
-continueBtn.addEventListener('click', () => {
-    if (currentLevel < 3) {
-        currentLevel++;
-        killCount = 0;
-        hasWon = false;
-        gameState = 'PLAYING';
-        victoryScreen.classList.add('hidden');
-        pauseBtn.classList.remove('hidden');
-        
-        // 重置玩家位置？也许保留。
-        // 清除怪物？
-        monsters = [];
-        bullets = [];
-        floatingTexts = [];
-    } else {
-        // 无尽模式或继续
-        gameState = 'PLAYING';
-        victoryScreen.classList.add('hidden');
-        pauseBtn.classList.remove('hidden');
-    }
+    overlayNextLevelBtn.addEventListener('click', () => {
+    currentLevel++;
+    // 保留当前状态，只重置关卡相关数据
+    monsters = [];
+    bullets = [];
+    ores = [];
+    floatingTexts = [];
+    killCount = 0;
+    monstersSpawned = 0;
+    hasWon = false;
+    sessionGold = 0; 
+    sessionInventory = {};
+    
+    spawnOres(); // 新关卡生成矿石
+
+    levelClearedOverlay.classList.add('hidden');    // 恢复玩家血量？通常过关会恢复一点或者不恢复。这里暂时不恢复，或者回满？
+    // 简单起见，回满血
+    const stats = getPlayerStats();
+    player.hp = stats.maxHp;
+    player.maxHp = stats.maxHp;
+    
+    showNotification(`进入第 ${currentLevel} 关`);
 });
 
-victoryLobbyBtn.addEventListener('click', () => {
+overlayLobbyBtn.addEventListener('click', () => {
     gameState = 'LOBBY';
-    victoryScreen.classList.add('hidden');
+    levelClearedOverlay.classList.add('hidden');
     startScreen.classList.remove('hidden');
     pauseBtn.classList.add('hidden');
     updateGoldDisplay();
@@ -707,6 +765,7 @@ confirmQuitYes.addEventListener('click', () => {
     
     // 重置游戏状态但不保存本局金币
     sessionGold = 0;
+    sessionInventory = {};
     updateGoldDisplay();
     updatePlayerStatsDisplay();
     
@@ -750,6 +809,7 @@ function update(timestamp) {
     updateShooting(timestamp);
     updateBullets();
     updateMonsters(timestamp);
+    updateOres(timestamp); // 更新矿石逻辑
     updateFloatingTexts();
 }
 
@@ -765,6 +825,9 @@ function updatePlayerMovement() {
 }
 
 function updateSpawning(timestamp) {
+    // 检查是否已达到本关最大生成数量
+    if (monstersSpawned >= MONSTERS_PER_LEVEL) return;
+
     const config = levelConfig[currentLevel] || levelConfig[3]; // 默认为第3关
     if (timestamp - lastSpawnTime > config.spawnRate) {
         spawnMonster();
@@ -944,9 +1007,9 @@ function handleBulletHit(bullet, monster, bulletIndex) {
             killCount++;
 
             const config = levelConfig[currentLevel] || levelConfig[3];
-            if (!hasWon && killCount >= config.winKillCount) {
+            // 检查是否击杀所有怪物 (固定50只)
+            if (!hasWon && killCount >= MONSTERS_PER_LEVEL) {
                 hasWon = true;
-                gameState = 'VICTORY';
                 
                 // 存储金币
                 totalGold += sessionGold;
@@ -955,21 +1018,25 @@ function handleBulletHit(bullet, monster, bulletIndex) {
                 // 奖励经验
                 const winExp = config.winExp || 0;
                 addExperience(winExp);
-                
-                winGoldDisplay.textContent = `获得金币: ${sessionGold} | 获得经验: ${winExp}`;
-                
-                const victoryTitle = document.querySelector('#victory-screen h1');
-                const continueBtn = document.getElementById('continue-btn');
-                
-                if (currentLevel < 3) {
-                    victoryTitle.textContent = `第 ${currentLevel} 关完成!`;
-                    continueBtn.textContent = "下一关";
-                } else {
-                    victoryTitle.textContent = "通关胜利!";
-                    continueBtn.textContent = "继续游戏 (无尽)";
-                }
 
-                victoryScreen.classList.remove('hidden');
+                // 结算道具并生成描述
+                let itemRewardStr = "";
+                const sessionItemIds = Object.keys(sessionInventory);
+                if (sessionItemIds.length > 0) {
+                    itemRewardStr = " | 获得道具: ";
+                    const items = [];
+                    sessionItemIds.forEach(id => {
+                        const count = sessionInventory[id];
+                        const item = itemConfig[id];
+                        items.push(`${item.name} x${count}`);
+                    });
+                    itemRewardStr += items.join(", ");
+                }
+                
+                persistSessionItems();
+                
+                levelRewardDisplay.textContent = `获得金币: ${sessionGold} | 获得经验: ${winExp}${itemRewardStr}`;
+                levelClearedOverlay.classList.remove('hidden');
             }
         }
     }
@@ -1040,6 +1107,8 @@ function spawnMonster() {
     const typeId = 1;
     const stats = monsterConfig[typeId];
     const hpMultiplier = 1 + 0.1 * currentLevel;
+
+    monstersSpawned++; // 增加生成计数
 
     monsters.push({
         id: monsterIdCounter++,
@@ -1190,13 +1259,227 @@ function drawWeapon() {
     ctx.restore();
 }
 
+// 矿石相关逻辑
+function spawnOres() {
+    // 每关随机生成 3-5 个铁矿
+    const count = Math.floor(Math.random() * 3) + 3;
+    for (let i = 0; i < count; i++) {
+        // 目前只生成 ID 为 1 的铁矿
+        const config = oreConfig[1];
+        ores.push({
+            instanceId: i,
+            configId: config.id,
+            x: Math.random() * (canvas.width - 100) + 50,
+            y: Math.random() * (canvas.height - 100) + 50,
+            size: config.size,
+            color: config.color,
+            capacity: config.maxCapacity,
+            maxCapacity: config.maxCapacity,
+            miningProgress: 0,
+            miningTime: config.miningTime,
+            miningRange: config.miningRange || 60,
+            productId: config.productId,
+            isMining: false
+        });
+    }
+}
+
+function updateOres(timestamp) {
+    // 找出所有在范围内的矿石
+    let candidates = [];
+    for (let i = 0; i < ores.length; i++) {
+        const ore = ores[i];
+        const dx = player.x - ore.x;
+        const dy = player.y - ore.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        // 采集范围
+        if (dist < ore.miningRange) {
+            candidates.push({ ore: ore, dist: dist, index: i });
+        } else {
+            // 不在范围内，重置
+            ore.isMining = false;
+            ore.miningProgress = 0;
+        }
+    }
+
+    // 如果有候选矿石，只采集最近的一个
+    if (candidates.length > 0) {
+        // 按距离排序
+        candidates.sort((a, b) => a.dist - b.dist);
+        
+        const target = candidates[0];
+        const targetOre = target.ore;
+        
+        // 标记最近的为正在采集
+        targetOre.isMining = true;
+        targetOre.miningProgress += 16.6; // 假设 60fps
+
+        // 其他候选者重置 (虽然在范围内，但因为不是最近的，所以不采集)
+        for (let i = 1; i < candidates.length; i++) {
+            candidates[i].ore.isMining = false;
+            candidates[i].ore.miningProgress = 0;
+        }
+
+        if (targetOre.miningProgress >= targetOre.miningTime) {
+            // 采集完成
+            targetOre.capacity--;
+            targetOre.miningProgress = 0;
+            
+            // 获得道具 (临时)
+            addSessionItem(targetOre.productId, 1); 
+            
+            const product = itemConfig[targetOre.productId];
+            floatingTexts.push({
+                x: player.x,
+                y: player.y - 30,
+                text: `获得 ${product ? product.name : '未知物品'} x1`,
+                life: 1.5,
+                color: '#FFF'
+            });
+
+            if (targetOre.capacity <= 0) {
+                ores.splice(target.index, 1);
+            }
+        }
+    }
+}
+
+function addSessionItem(itemId, count) {
+    if (!sessionInventory[itemId]) {
+        sessionInventory[itemId] = 0;
+    }
+    sessionInventory[itemId] += count;
+    // showNotification(`获得 ${itemConfig[itemId].name} x${count} (通关后结算)`);
+}
+
+function persistSessionItems() {
+    for (const itemId in sessionInventory) {
+        const count = sessionInventory[itemId];
+        if (!inventory[itemId]) {
+            inventory[itemId] = 0;
+        }
+        inventory[itemId] += count;
+    }
+    localStorage.setItem('inventory', JSON.stringify(inventory));
+    sessionInventory = {}; // 清空
+}
+
+function addItem(itemId, count) {
+    // 旧函数，保留以防万一，但现在主要用 addSessionItem
+    if (!inventory[itemId]) {
+        inventory[itemId] = 0;
+    }
+    inventory[itemId] += count;
+    localStorage.setItem('inventory', JSON.stringify(inventory));
+    showNotification(`获得 ${itemConfig[itemId].name} x${count}`);
+}
+
+function updateInventoryUI() {
+    inventoryList.innerHTML = '';
+    const itemIds = Object.keys(inventory);
+    
+    if (itemIds.length === 0) {
+        inventoryList.innerHTML = '<p style="color: #aaa; font-size: 18px;">暂无道具</p>';
+        return;
+    }
+
+    itemIds.forEach(id => {
+        const count = inventory[id];
+        if (count > 0) {
+            const item = itemConfig[id];
+            const div = document.createElement('div');
+            div.className = 'upgrade-item'; // 复用样式
+            div.style.display = 'flex';
+            div.style.flexDirection = 'column';
+            div.style.alignItems = 'center';
+            div.innerHTML = `
+                <div style="font-size: 32px; margin-bottom: 10px;">${item.icon}</div>
+                <h3>${item.name} x${count}</h3>
+                <p style="font-size: 12px; color: #ccc;">${item.description}</p>
+                ${item.usable ? '<button>使用</button>' : '<button disabled style="background: #555; cursor: not-allowed;">不可使用</button>'}
+            `;
+            inventoryList.appendChild(div);
+        }
+    });
+}
+
 // 渲染
 function draw() {
     ctx.fillStyle = '#222';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if (gameState === 'PLAYING' || gameState === 'GAMEOVER' || gameState === 'LOBBY' || gameState === 'VICTORY' || gameState === 'PAUSED') {
-        // 绘制玩家
+        
+        if (gameState !== 'LOBBY') {
+            // Layer 1: Ores (Bottom)
+            for (const ore of ores) {
+                // 采集范围圈 (半透明)
+                ctx.beginPath();
+                ctx.arc(ore.x, ore.y, ore.miningRange, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.closePath();
+
+                // 矿石本体 (正方形)
+                ctx.fillStyle = ore.color;
+                ctx.fillRect(ore.x - ore.size / 2, ore.y - ore.size / 2, ore.size, ore.size);
+                
+                ctx.strokeStyle = '#5D4037';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(ore.x - ore.size / 2, ore.y - ore.size / 2, ore.size, ore.size);
+
+                // 剩余次数文字
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`${ore.capacity}`, ore.x, ore.y);
+
+                // 采集进度条
+                if (ore.isMining && ore.miningProgress > 0) {
+                    const barWidth = 40;
+                    const barHeight = 6;
+                    const progress = Math.min(1, ore.miningProgress / ore.miningTime);
+                    
+                    ctx.fillStyle = '#333';
+                    ctx.fillRect(ore.x - barWidth/2, ore.y - ore.size / 2 - 15, barWidth, barHeight);
+                    
+                    ctx.fillStyle = '#4CAF50';
+                    ctx.fillRect(ore.x - barWidth/2, ore.y - ore.size / 2 - 15, barWidth * progress, barHeight);
+                }
+            }
+
+            // Layer 2: Monsters
+            for (const m of monsters) {
+                ctx.beginPath();
+                ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
+                ctx.fillStyle = m.color;
+                ctx.fill();
+                ctx.closePath();
+                
+                // 绘制生命值
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(Math.ceil(m.hp), m.x, m.y);
+            }
+
+            // Layer 3: Bullets
+            for (const b of bullets) {
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+                ctx.fillStyle = b.color;
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        // Layer 4: Player (Top)
         ctx.beginPath();
         ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
         ctx.fillStyle = player.color;
@@ -1215,43 +1498,18 @@ function draw() {
             ctx.fillText(`生命: ${Math.ceil(player.hp)}/${player.maxHp}`, player.x, player.y - player.radius - 5);
         }
 
+        // Layer 5: UI Overlay
         if (gameState !== 'LOBBY') {
             // 绘制击杀数
             ctx.fillStyle = 'white';
             ctx.font = '20px Arial';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'top';
-            const config = levelConfig[currentLevel] || levelConfig[3];
-            ctx.fillText(`击杀: ${killCount} / ${config.winKillCount} (关卡 ${currentLevel})`, 20, 20);
+            ctx.fillText(`击杀: ${killCount} / ${MONSTERS_PER_LEVEL} (关卡 ${currentLevel})`, 20, 20);
 
             // 绘制本局金币
             ctx.fillStyle = 'gold';
             ctx.fillText(`金币: ${sessionGold}`, 20, 50);
-
-            // 绘制怪物
-            for (const m of monsters) {
-                ctx.beginPath();
-                ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
-                ctx.fillStyle = m.color;
-                ctx.fill();
-                ctx.closePath();
-                
-                // 绘制生命值 (可选，用于调试/清晰度)
-                ctx.fillStyle = 'white';
-                ctx.font = '12px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(Math.ceil(m.hp), m.x, m.y);
-            }
-
-            // 绘制子弹
-            for (const b of bullets) {
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-                ctx.fillStyle = b.color;
-                ctx.fill();
-                ctx.closePath();
-            }
 
             // 绘制浮动文字
             for (const ft of floatingTexts) {

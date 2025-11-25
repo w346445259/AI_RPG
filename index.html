@@ -25,15 +25,11 @@
                     <div id="exp-display">经验: 0</div>
                     <div id="next-level-exp-display">下阶所需: 0</div>
                     
-                    <div style="margin: 10px 0; display: flex; gap: 5px;">
-                        <input type="number" id="test-exp-input" placeholder="输入经验" style="width: 80px; padding: 5px;">
-                        <button id="test-add-exp-btn" style="background-color: #2196F3; padding: 5px 10px;">增加经验(测试)</button>
-                    </div>
-
                     <button id="start-btn">开始游戏</button>
                     <button id="upgrade-btn" style="background-color: #9C27B0;">修炼</button>
                     <button id="weapon-btn" style="background-color: #FF5722;">武器库</button>
-                    <button id="clear-data-btn" style="background-color: #607D8B; margin-top: 10px;">清除存档 (测试)</button>
+                    <button id="inventory-btn" style="background-color: #795548;">背包</button>
+                    <button id="debug-btn" style="background-color: #607D8B; margin-top: 10px;">调试功能</button>
                 </div>
                 <div class="lobby-right">
                     <!-- Player preview will be drawn on canvas behind here -->
@@ -53,13 +49,17 @@
             <button id="restart-btn">重新开始</button>
             <button id="lobby-btn">返回大厅</button>
         </div>
-        <div id="victory-screen" class="screen hidden">
-            <h1>胜利！</h1>
-            <p id="win-gold-display" style="color: gold; font-size: 24px; margin: 20px 0;">获得金币: 0</p>
-            <button id="continue-btn">继续游戏</button>
-            <button id="victory-lobby-btn">返回大厅</button>
-        </div>
         
+        <!-- 新的通关结算 UI (右下角) -->
+        <div id="level-cleared-overlay" class="hidden" style="position: absolute; bottom: 30px; right: 30px; background: rgba(0,0,0,0.8); padding: 25px; border-radius: 15px; border: 2px solid gold; text-align: right; z-index: 100; min-width: 300px;">
+            <h2 style="color: gold; margin: 0 0 15px 0; font-size: 28px;">关卡完成!</h2>
+            <p id="level-reward-display" style="color: white; margin-bottom: 20px; font-size: 18px;">获得金币: 0 | 经验: 0</p>
+            <div style="display: flex; gap: 15px; justify-content: flex-end;">
+                <button id="overlay-lobby-btn" style="padding: 12px 24px; font-size: 18px; background-color: #607D8B;">返回大厅</button>
+                <button id="overlay-next-level-btn" style="padding: 12px 24px; font-size: 18px; background-color: #4CAF50;">下一关</button>
+            </div>
+        </div>
+
         <div id="upgrade-screen" class="screen hidden">
             <h1>修炼</h1>
             <div id="cultivation-reiki-display" style="color: #00ffff; font-size: 20px; margin-bottom: 15px;">当前灵气: 0</div>
@@ -107,6 +107,28 @@
                 <!-- Weapons will be injected here -->
             </div>
             <button id="btn-weapon-back-lobby" style="margin-top: 30px; background-color: #607D8B;">返回大厅</button>
+        </div>
+
+        <div id="inventory-screen" class="screen hidden">
+            <h1>背包</h1>
+            <div id="inventory-list" class="inventory-container">
+                <p style="color: #aaa; font-size: 18px;">暂无道具</p>
+            </div>
+            <button id="btn-inventory-back-lobby" style="margin-top: 30px; background-color: #607D8B;">返回大厅</button>
+        </div>
+
+        <div id="debug-screen" class="screen hidden" style="background: rgba(0,0,0,0.8); z-index: 50;">
+            <div style="background: #333; padding: 40px; border-radius: 15px; border: 1px solid #555; display: flex; flex-direction: column; align-items: center; min-width: 300px;">
+                <h1 style="margin-top: 0;">调试功能</h1>
+                <div class="upgrade-container" style="flex-direction: column; align-items: center;">
+                    <div style="margin: 20px 0; display: flex; gap: 10px; align-items: center;">
+                        <input type="number" id="test-exp-input" placeholder="输入经验值" style="width: 150px; padding: 10px; font-size: 16px; border-radius: 5px; border: none;">
+                        <button id="test-add-exp-btn" style="background-color: #2196F3; margin: 0;">增加经验</button>
+                    </div>
+                    <button id="clear-data-btn" style="background-color: #f44336; margin-top: 20px;">清除所有存档</button>
+                </div>
+                <button id="btn-close-debug" style="margin-top: 30px; background-color: #607D8B;">关闭</button>
+            </div>
         </div>
 
         <div id="pause-screen" class="screen hidden" style="background: rgba(0,0,0,0.5);">

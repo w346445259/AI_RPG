@@ -216,6 +216,20 @@ button:hover {
     display: none;
 }
 
+.inventory-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 80%;
+    height: 60%;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto;
+}
+
 /* Notification Toast */
 #notification-container {
     position: absolute;
