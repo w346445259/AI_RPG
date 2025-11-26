@@ -7,192 +7,194 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
-    
-    <div id="ui-layer">
-        <!-- Notification Container -->
-        <div id="notification-container"></div>
-
-        <!-- Pause Button (Visible during gameplay) -->
-        <button id="pause-btn" class="hidden" style="position: absolute; top: 20px; right: 20px; z-index: 20;">暂停</button>
-
-        <div id="start-screen" class="screen">
-            <div class="lobby-container">
-                <div class="lobby-left">
-                    <h1>H5 2D 游戏</h1>
-                    <div id="gold-display">金币: 0</div>
-                    <div id="reiki-display" style="display: none;">灵气: 0</div>
-                    <div id="exp-display">经验: 0</div>
-                    <div id="next-level-exp-display">下阶所需: 0</div>
-                    
-                    <button id="start-btn">选择关卡</button>
-                    <button id="upgrade-btn" style="background-color: #9C27B0;">修炼</button>
-                    <button id="forging-btn" style="background-color: #FF9800;">锻造</button>
-                    <button id="inventory-btn" style="background-color: #795548;">背包</button>
-                    <button id="debug-btn" style="background-color: #607D8B; margin-top: 10px;">调试功能</button>
-                </div>
-                <div class="lobby-right">
-                    <!-- Player preview will be drawn on canvas behind here -->
-                    <h2>玩家状态</h2>
-                    <div id="player-stats-display" style="text-align: left; margin-top: 20px; padding: 0 20px;">
-                        <p>生命: <span id="stat-hp">0</span></p>
-                        <p>力量: <span id="stat-strength">0</span></p>
-                        <p>敏捷: <span id="stat-agility">0</span></p>
-                        <p>悟性: <span id="stat-comprehension">0</span></p>
-                        <p>防御: <span id="stat-defense">0</span></p>
-                        <p>速度: <span id="stat-speed">0</span></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="level-selection-screen" class="screen hidden">
-            <h1>选择关卡</h1>
-            <div id="level-list" class="upgrade-container" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 40px 20px; max-height: 75vh; overflow-y: auto; width: 85%; align-items: start; justify-content: center; padding: 20px;">
-                <!-- Levels will be injected here -->
-            </div>
-            <button id="btn-back-lobby-levels" style="margin-top: 20px; background-color: #607D8B;">返回大厅</button>
-        </div>
-
-        <div id="game-over-screen" class="screen hidden">
-            <h1>游戏结束</h1>
-            <p id="loss-gold-display" style="color: #ff4444; font-size: 24px; margin: 20px 0;">损失金币: 0</p>
-            <button id="restart-btn">重新开始</button>
-            <button id="lobby-btn">返回大厅</button>
-        </div>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
         
-        <!-- 新的通关结算 UI (右下角) -->
-        <div id="level-cleared-overlay" class="hidden" style="position: absolute; bottom: 30px; right: 30px; background: rgba(0,0,0,0.8); padding: 25px; border-radius: 15px; border: 2px solid gold; text-align: right; z-index: 100; min-width: 300px;">
-            <h2 style="color: gold; margin: 0 0 15px 0; font-size: 28px;">关卡完成!</h2>
-            <p id="level-reward-display" style="color: white; margin-bottom: 20px; font-size: 18px;">获得金币: 0 | 经验: 0</p>
-            <div style="display: flex; gap: 15px; justify-content: flex-end;">
-                <button id="overlay-lobby-btn" style="padding: 12px 24px; font-size: 18px; background-color: #607D8B;">返回大厅</button>
-                <button id="overlay-next-level-btn" style="padding: 12px 24px; font-size: 18px; background-color: #4CAF50;">下一关</button>
-            </div>
-        </div>
+        <div id="ui-layer">
+            <!-- Notification Container -->
+            <div id="notification-container"></div>
 
-        <div id="upgrade-screen" class="screen hidden">
-            <h1>修炼</h1>
-            <div id="cultivation-reiki-display" style="color: #00ffff; font-size: 20px; margin-bottom: 15px;">当前灵气: 0</div>
-            <div class="cultivation-container">
-                <div class="cultivation-tabs">
-                    <button class="tab-btn active" data-tab="mortal">凡人</button>
-                    <button class="tab-btn" data-tab="body-refining">锻体</button>
-                    <button class="tab-btn" data-tab="qi-refining">练气</button>
-                    <button class="tab-btn" data-tab="foundation">筑基</button>
-                    <button class="tab-btn" data-tab="golden-core">金丹</button>
-                    <button class="tab-btn" data-tab="nascent-soul">元婴</button>
-                    <button class="tab-btn" data-tab="soul-formation">化神</button>
-                    <button class="tab-btn" data-tab="tribulation">渡劫</button>
-                    <button class="tab-btn" data-tab="mahayana">大乘</button>
-                </div>
-                <div class="cultivation-content">
-                    <div id="content-mortal" class="tab-content">
-                        <div id="mortal-process">
-                            <h2>凡人阶段</h2>
-                            <p>肉体凡胎，未入仙途。</p>
-                            <p>需消耗 20 灵气感应天地，方可踏入修炼之路。</p>
-                            <button id="btn-breakthrough-mortal" style="background-color: #FF9800; margin-top: 20px;">感应天地 (消耗: 20 灵气)</button>
-                        </div>
-                        <div id="mortal-completed" class="hidden">
-                            <h2>凡人阶段</h2>
-                            <p>您已踏入仙人之路。</p>
-                        </div>
-                    </div>
-                    <div id="content-body-refining" class="tab-content hidden">锻体内容 (空)</div>
-                    <div id="content-qi-refining" class="tab-content hidden">练气内容 (空)</div>
-                    <div id="content-foundation" class="tab-content hidden">筑基内容 (空)</div>
-                    <div id="content-golden-core" class="tab-content hidden">金丹内容 (空)</div>
-                    <div id="content-nascent-soul" class="tab-content hidden">元婴内容 (空)</div>
-                    <div id="content-soul-formation" class="tab-content hidden">化神内容 (空)</div>
-                    <div id="content-tribulation" class="tab-content hidden">渡劫内容 (空)</div>
-                    <div id="content-mahayana" class="tab-content hidden">大乘内容 (空)</div>
-                </div>
-            </div>
-            <button id="btn-back-lobby" style="margin-top: 20px; background-color: #607D8B;">返回大厅</button>
-        </div>
+            <!-- Pause Button (Visible during gameplay) -->
+            <button id="pause-btn" class="hidden" style="position: absolute; top: 20px; right: 20px; z-index: 20;">暂停</button>
 
-        <div id="forging-screen" class="screen hidden">
-            <h1>锻造</h1>
-            <div class="forging-container">
-                <div class="forging-tabs">
-                    <button class="tab-btn active" data-tab="mortal-weapon">凡器</button>
-                </div>
-                <div class="forging-content">
-                    <div id="content-mortal-weapon" class="tab-content">
-                        <h2>凡器锻造</h2>
-                        <p>使用凡铁矿锻造基础武器。</p>
-                        <!-- 凡器锻造内容将在这里添加 -->
+            <div id="start-screen" class="screen">
+                <div class="lobby-container">
+                    <div class="lobby-left">
+                        <h1>H5 2D 游戏</h1>
+                        <div id="gold-display">金币: 0</div>
+                        <div id="reiki-display" style="display: none;">灵气: 0</div>
+                        <div id="exp-display">经验: 0</div>
+                        <div id="next-level-exp-display">下阶所需: 0</div>
+                        
+                        <button id="start-btn">选择关卡</button>
+                        <button id="upgrade-btn" style="background-color: #9C27B0;">修炼</button>
+                        <button id="forging-btn" style="background-color: #FF9800;">锻造</button>
+                        <button id="inventory-btn" style="background-color: #795548;">背包</button>
+                        <button id="debug-btn" style="background-color: #607D8B; margin-top: 10px;">调试功能</button>
                     </div>
-                </div>
-            </div>
-            <button id="btn-back-lobby-forging" style="margin-top: 20px; background-color: #607D8B;">返回大厅</button>
-        </div>
-
-        <div id="inventory-screen" class="screen hidden">
-            <h1>背包</h1>
-            <div class="inventory-container" style="display: flex; width: 80%; height: 60%; background: rgba(0,0,0,0.8); border-radius: 10px; overflow: hidden;">
-                <div class="inventory-tabs" style="width: 150px; background: rgba(255,255,255,0.1); display: flex; flex-direction: column;">
-                    <button class="tab-btn active" data-tab="items">道具</button>
-                    <button class="tab-btn" data-tab="weapons">武器</button>
-                </div>
-                <div class="inventory-content" style="flex: 1; padding: 20px; overflow-y: auto; text-align: left;">
-                    <div id="content-items" class="tab-content">
-                        <div id="inventory-list" class="upgrade-container">
-                            <p style="color: #aaa; font-size: 18px;">暂无道具</p>
-                        </div>
-                    </div>
-                    <div id="content-weapons" class="tab-content hidden">
-                        <div id="inventory-weapon-list" class="upgrade-container">
-                            <!-- Weapons will be injected here -->
+                    <div class="lobby-right">
+                        <!-- Player preview will be drawn on canvas behind here -->
+                        <h2>玩家状态</h2>
+                        <div id="player-stats-display" style="text-align: left; margin-top: 20px; padding: 0 20px;">
+                            <p>生命: <span id="stat-hp">0</span></p>
+                            <p>力量: <span id="stat-strength">0</span></p>
+                            <p>敏捷: <span id="stat-agility">0</span></p>
+                            <p>悟性: <span id="stat-comprehension">0</span></p>
+                            <p>防御: <span id="stat-defense">0</span></p>
+                            <p>速度: <span id="stat-speed">0</span></p>
                         </div>
                     </div>
                 </div>
             </div>
-            <button id="btn-inventory-back-lobby" style="margin-top: 30px; background-color: #607D8B; z-index: 100; cursor: pointer; position: relative;">返回大厅</button>
-        </div>
 
-        <div id="debug-screen" class="screen hidden" style="background: rgba(0,0,0,0.8); z-index: 50;">
-            <div style="background: #333; padding: 40px; border-radius: 15px; border: 1px solid #555; display: flex; flex-direction: column; align-items: center; min-width: 300px;">
-                <h1 style="margin-top: 0;">调试功能</h1>
-                <div class="upgrade-container" style="flex-direction: column; align-items: center;">
-                    <div style="margin: 20px 0; display: flex; gap: 10px; align-items: center;">
-                        <input type="number" id="test-exp-input" placeholder="输入经验值" style="width: 150px; padding: 10px; font-size: 16px; border-radius: 5px; border: none;">
-                        <button id="test-add-exp-btn" style="background-color: #2196F3; margin: 0;">增加经验</button>
-                    </div>
-                    
-                    <div style="margin: 20px 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center;">
-                        <select id="debug-item-select" style="padding: 10px; font-size: 16px; border-radius: 5px; border: none; min-width: 150px;">
-                            <!-- Options will be populated by JS -->
-                        </select>
-                        <input type="number" id="debug-item-count" placeholder="数量" value="1" style="width: 80px; padding: 10px; font-size: 16px; border-radius: 5px; border: none;">
-                        <button id="debug-add-item-btn" style="background-color: #4CAF50; margin: 0;">添加道具</button>
-                    </div>
-
-                    <button id="debug-unlock-levels-btn" style="background-color: #9C27B0; margin-top: 10px;">解锁所有关卡</button>
-
-                    <button id="clear-data-btn" style="background-color: #f44336; margin-top: 20px;">清除所有存档</button>
+            <div id="level-selection-screen" class="screen hidden">
+                <h1>选择关卡</h1>
+                <div id="level-list" class="upgrade-container" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 40px 20px; max-height: 75vh; overflow-y: auto; width: 85%; align-items: start; justify-content: center; padding: 20px;">
+                    <!-- Levels will be injected here -->
                 </div>
-                <button id="btn-close-debug" style="margin-top: 30px; background-color: #607D8B;">关闭</button>
+                <button id="btn-back-lobby-levels" style="margin-top: 20px; background-color: #607D8B;">返回大厅</button>
             </div>
-        </div>
 
-        <div id="pause-screen" class="screen hidden" style="background: rgba(0,0,0,0.5);">
-            <h1>暂停</h1>
-            <button id="resume-btn">继续游戏</button>
-            <button id="quit-lobby-btn" style="background-color: #f44336;">退出到大厅</button>
-        </div>
-
-        <div id="confirm-quit-modal" class="screen hidden" style="background: rgba(0,0,0,0.8); z-index: 30;">
-            <div style="background: #333; padding: 30px; border-radius: 10px; text-align: center; border: 1px solid #555; max-width: 500px;">
-                <h2>确认退出?</h2>
-                <p style="color: #ff4444; margin: 20px 0;">退出将损失本局获得的所有道具!</p>
-                <div id="session-items-list" style="background: #222; padding: 15px; border-radius: 5px; margin: 20px 0; max-height: 200px; overflow-y: auto; text-align: left;">
-                    <!-- 动态显示本局获得的道具 -->
+            <div id="game-over-screen" class="screen hidden">
+                <h1>游戏结束</h1>
+                <p id="loss-gold-display" style="color: #ff4444; font-size: 24px; margin: 20px 0;">损失金币: 0</p>
+                <button id="restart-btn">重新开始</button>
+                <button id="lobby-btn">返回大厅</button>
+            </div>
+            
+            <!-- 新的通关结算 UI (右下角) -->
+            <div id="level-cleared-overlay" class="hidden" style="position: absolute; bottom: 30px; right: 30px; background: rgba(0,0,0,0.8); padding: 25px; border-radius: 15px; border: 2px solid gold; text-align: right; z-index: 100; min-width: 300px;">
+                <h2 style="color: gold; margin: 0 0 15px 0; font-size: 28px;">关卡完成!</h2>
+                <p id="level-reward-display" style="color: white; margin-bottom: 20px; font-size: 18px;">获得金币: 0 | 经验: 0</p>
+                <div style="display: flex; gap: 15px; justify-content: flex-end;">
+                    <button id="overlay-lobby-btn" style="padding: 12px 24px; font-size: 18px; background-color: #607D8B;">返回大厅</button>
+                    <button id="overlay-next-level-btn" style="padding: 12px 24px; font-size: 18px; background-color: #4CAF50;">下一关</button>
                 </div>
-                <div style="display: flex; justify-content: center; gap: 20px;">
-                    <button id="confirm-quit-yes" style="background-color: #f44336;">确认退出</button>
-                    <button id="confirm-quit-no" style="background-color: #607D8B;">取消</button>
+            </div>
+
+            <div id="upgrade-screen" class="screen hidden">
+                <h1>修炼</h1>
+                <div id="cultivation-reiki-display" style="color: #00ffff; font-size: 20px; margin-bottom: 15px;">当前灵气: 0</div>
+                <div class="cultivation-container">
+                    <div class="cultivation-tabs">
+                        <button class="tab-btn active" data-tab="mortal">凡人</button>
+                        <button class="tab-btn" data-tab="body-refining">锻体</button>
+                        <button class="tab-btn" data-tab="qi-refining">练气</button>
+                        <button class="tab-btn" data-tab="foundation">筑基</button>
+                        <button class="tab-btn" data-tab="golden-core">金丹</button>
+                        <button class="tab-btn" data-tab="nascent-soul">元婴</button>
+                        <button class="tab-btn" data-tab="soul-formation">化神</button>
+                        <button class="tab-btn" data-tab="tribulation">渡劫</button>
+                        <button class="tab-btn" data-tab="mahayana">大乘</button>
+                    </div>
+                    <div class="cultivation-content">
+                        <div id="content-mortal" class="tab-content">
+                            <div id="mortal-process">
+                                <h2>凡人阶段</h2>
+                                <p>肉体凡胎，未入仙途。</p>
+                                <p>需消耗 20 灵气感应天地，方可踏入修炼之路。</p>
+                                <button id="btn-breakthrough-mortal" style="background-color: #FF9800; margin-top: 20px;">感应天地 (消耗: 20 灵气)</button>
+                            </div>
+                            <div id="mortal-completed" class="hidden">
+                                <h2>凡人阶段</h2>
+                                <p>您已踏入仙人之路。</p>
+                            </div>
+                        </div>
+                        <div id="content-body-refining" class="tab-content hidden">锻体内容 (空)</div>
+                        <div id="content-qi-refining" class="tab-content hidden">练气内容 (空)</div>
+                        <div id="content-foundation" class="tab-content hidden">筑基内容 (空)</div>
+                        <div id="content-golden-core" class="tab-content hidden">金丹内容 (空)</div>
+                        <div id="content-nascent-soul" class="tab-content hidden">元婴内容 (空)</div>
+                        <div id="content-soul-formation" class="tab-content hidden">化神内容 (空)</div>
+                        <div id="content-tribulation" class="tab-content hidden">渡劫内容 (空)</div>
+                        <div id="content-mahayana" class="tab-content hidden">大乘内容 (空)</div>
+                    </div>
+                </div>
+                <button id="btn-back-lobby" style="margin-top: 20px; background-color: #607D8B;">返回大厅</button>
+            </div>
+
+            <div id="forging-screen" class="screen hidden">
+                <h1>锻造</h1>
+                <div class="forging-container">
+                    <div class="forging-tabs">
+                        <button class="tab-btn active" data-tab="mortal-weapon">凡器</button>
+                    </div>
+                    <div class="forging-content">
+                        <div id="content-mortal-weapon" class="tab-content">
+                            <h2>凡器锻造</h2>
+                            <p>使用凡铁矿锻造基础武器。</p>
+                            <div id="forging-list" class="upgrade-container"></div>
+                        </div>
+                    </div>
+                </div>
+                <button id="btn-back-lobby-forging" style="margin-top: 20px; background-color: #607D8B;">返回大厅</button>
+            </div>
+
+            <div id="inventory-screen" class="screen hidden">
+                <h1>背包</h1>
+                <div class="inventory-container" style="display: flex; width: 80%; height: 60%; background: rgba(0,0,0,0.8); border-radius: 10px; overflow: hidden;">
+                    <div class="inventory-tabs" style="width: 150px; background: rgba(255,255,255,0.1); display: flex; flex-direction: column;">
+                        <button class="tab-btn active" data-tab="items">道具</button>
+                        <button class="tab-btn" data-tab="weapons">武器</button>
+                    </div>
+                    <div class="inventory-content" style="flex: 1; padding: 20px; overflow-y: auto; text-align: left;">
+                        <div id="content-items" class="tab-content">
+                            <div id="inventory-list" class="upgrade-container">
+                                <p style="color: #aaa; font-size: 18px;">暂无道具</p>
+                            </div>
+                        </div>
+                        <div id="content-weapons" class="tab-content hidden">
+                            <div id="inventory-weapon-list" class="upgrade-container">
+                                <!-- Weapons will be injected here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button id="btn-inventory-back-lobby" style="margin-top: 30px; background-color: #607D8B; z-index: 100; cursor: pointer; position: relative;">返回大厅</button>
+            </div>
+
+            <div id="debug-screen" class="screen hidden" style="background: rgba(0,0,0,0.8); z-index: 50;">
+                <div style="background: #333; padding: 40px; border-radius: 15px; border: 1px solid #555; display: flex; flex-direction: column; align-items: center; min-width: 300px;">
+                    <h1 style="margin-top: 0;">调试功能</h1>
+                    <div class="upgrade-container" style="flex-direction: column; align-items: center;">
+                        <div style="margin: 20px 0; display: flex; gap: 10px; align-items: center;">
+                            <input type="number" id="test-exp-input" placeholder="输入经验值" style="width: 150px; padding: 10px; font-size: 16px; border-radius: 5px; border: none;">
+                            <button id="test-add-exp-btn" style="background-color: #2196F3; margin: 0;">增加经验</button>
+                        </div>
+                        
+                        <div style="margin: 20px 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center;">
+                            <select id="debug-item-select" style="padding: 10px; font-size: 16px; border-radius: 5px; border: none; min-width: 150px;">
+                                <!-- Options will be populated by JS -->
+                            </select>
+                            <input type="number" id="debug-item-count" placeholder="数量" value="1" style="width: 80px; padding: 10px; font-size: 16px; border-radius: 5px; border: none;">
+                            <button id="debug-add-item-btn" style="background-color: #4CAF50; margin: 0;">添加道具</button>
+                        </div>
+
+                        <button id="debug-unlock-levels-btn" style="background-color: #9C27B0; margin-top: 10px;">解锁所有关卡</button>
+
+                        <button id="clear-data-btn" style="background-color: #f44336; margin-top: 20px;">清除所有存档</button>
+                    </div>
+                    <button id="btn-close-debug" style="margin-top: 30px; background-color: #607D8B;">关闭</button>
+                </div>
+            </div>
+
+            <div id="pause-screen" class="screen hidden" style="background: rgba(0,0,0,0.5);">
+                <h1>暂停</h1>
+                <button id="resume-btn">继续游戏</button>
+                <button id="quit-lobby-btn" style="background-color: #f44336;">退出到大厅</button>
+            </div>
+
+            <div id="confirm-quit-modal" class="screen hidden" style="background: rgba(0,0,0,0.8); z-index: 30;">
+                <div style="background: #333; padding: 30px; border-radius: 10px; text-align: center; border: 1px solid #555; max-width: 500px;">
+                    <h2>确认退出?</h2>
+                    <p style="color: #ff4444; margin: 20px 0;">退出将损失本局获得的所有道具!</p>
+                    <div id="session-items-list" style="background: #222; padding: 15px; border-radius: 5px; margin: 20px 0; max-height: 200px; overflow-y: auto; text-align: left;">
+                        <!-- 动态显示本局获得的道具 -->
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 20px;">
+                        <button id="confirm-quit-yes" style="background-color: #f44336;">确认退出</button>
+                        <button id="confirm-quit-no" style="background-color: #607D8B;">取消</button>
+                    </div>
                 </div>
             </div>
         </div>
