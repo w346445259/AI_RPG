@@ -19,5 +19,26 @@ export const itemConfig = {
         description: "普通的凡铜矿，导灵性比凡铁稍好。",
         usable: false,
         icon: "🔶"
+    },
+    4: {
+        id: 4,
+        name: "凡铁锭",
+        description: "经过熔炼的凡铁锭，质地坚硬。",
+        usable: false,
+        icon: "⬛"
+    },
+    5: {
+        id: 5,
+        name: "凡铜锭",
+        description: "经过熔炼的凡铜锭，灵气流转。",
+        usable: false,
+        icon: "🟧"
+    },
+    6: {
+        id: 6,
+        name: "精铁锭",
+        description: "百炼成钢，比凡铁锭更加坚硬锋利。",
+        usable: false,
+        icon: "⬜"
     }
 };

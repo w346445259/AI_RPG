@@ -3,6 +3,7 @@ import { playerConfig } from '../config/playerConfig.js';
 import { weaponConfig } from '../config/weaponConfig.js';
 import { itemConfig } from '../config/itemConfig.js';
 import { levelConfig } from '../config/spawnConfig.js';
+import { smeltingConfig } from '../config/smeltingConfig.js';
 import { bodyRefiningConfig, realmBaseConfig } from '../config/cultivationConfig.js';
 
 // UI Elements (Cached)
@@ -193,7 +194,15 @@ export function updateLevelSelectionUI() {
 }
 
 export function updateForgingUI() {
-    const list = document.getElementById('forging-list');
+    // Get active tab
+    const activeTabBtn = document.querySelector('.forging-tabs .tab-btn.active');
+    const activeTab = activeTabBtn ? activeTabBtn.getAttribute('data-tab') : 'wood';
+
+    // Map tab to category
+    const category = activeTab; // 'wood', 'iron', 'refined-iron'
+
+    const listId = `forging-list-${category}`;
+    const list = document.getElementById(listId);
     if (!list) return;
     
     list.innerHTML = '';
@@ -202,6 +211,9 @@ export function updateForgingUI() {
         const weapon = weaponConfig[id];
         const weaponId = parseInt(id);
         
+        // Filter by category
+        if (weapon.category !== category) continue;
+
         // Skip if already owned? Or show "Owned"?
         const isOwned = state.ownedWeapons.includes(weaponId);
         
@@ -245,7 +257,55 @@ export function updateForgingUI() {
     }
     
     if (list.children.length === 0) {
-        list.innerHTML = '<p>暂无可锻造的凡器。</p>';
+        list.innerHTML = '<p>暂无可锻造的物品。</p>';
+    }
+}
+
+export function updateSmeltingUI() {
+    const container = document.querySelector('.smelting-container .upgrade-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+
+    for (const key in smeltingConfig) {
+        const recipe = smeltingConfig[key];
+        const div = document.createElement('div');
+        div.className = 'smelting-item';
+        div.style.background = 'rgba(255,255,255,0.1)';
+        div.style.padding = '20px';
+        div.style.borderRadius = '10px';
+        div.style.textAlign = 'center';
+        div.style.width = '300px';
+        div.style.margin = '10px';
+
+        // Check requirements
+        let canSmelt = true;
+        let reqText = '';
+        for (const matId in recipe.input) {
+            const required = recipe.input[matId];
+            const owned = state.inventory[matId] || 0;
+            const matName = itemConfig[matId] ? itemConfig[matId].name : `未知物品${matId}`;
+            const color = owned >= required ? '#4CAF50' : '#f44336';
+            reqText += `<p>消耗: ${matName} x${required} <span style="color: ${color}">(${owned})</span></p>`;
+            if (owned < required) canSmelt = false;
+        }
+
+        let outText = '';
+        for (const itemId in recipe.output) {
+            const count = recipe.output[itemId];
+            const itemName = itemConfig[itemId] ? itemConfig[itemId].name : `未知物品${itemId}`;
+            outText += `<p>产出: ${itemName} x${count}</p>`;
+        }
+
+        div.innerHTML = `
+            <h3>${recipe.name}</h3>
+            ${reqText}
+            ${outText}
+            <button onclick="window.smeltItem('${key}')" style="background-color: ${canSmelt ? '#FF5722' : '#555'}; margin-top: 10px;" ${canSmelt ? '' : 'disabled'}>
+                ${canSmelt ? '熔炼' : '材料不足'}
+            </button>
+        `;
+        container.appendChild(div);
     }
 }
 

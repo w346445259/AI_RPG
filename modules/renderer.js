@@ -2,6 +2,7 @@ import { state } from './state.js';
 import { weaponConfig } from '../config/weaponConfig.js';
 import { levelConfig } from '../config/spawnConfig.js';
 import { monsterWeaponConfig } from '../config/monsterWeaponConfig.js';
+import { cameraConfig } from '../config/cameraConfig.js';
 import { getNearestMonster } from './utils.js';
 
 function drawWeapon() {
@@ -53,6 +54,24 @@ export function draw(timestamp) {
         
         if (state.gameState !== 'LOBBY') {
             ctx.save();
+            // Apply zoom (scale)
+            const zoomLevel = cameraConfig.zoomLevel;
+            ctx.scale(zoomLevel, zoomLevel);
+            
+            // Adjust translation to center camera with zoom
+            // The camera position (state.camera.x, state.camera.y) is the top-left corner of the view in world coordinates.
+            // When scaling, we need to adjust the translation so the camera still points to the correct location.
+            // However, typically camera logic calculates top-left based on screen size.
+            // If we scale the context, the "screen size" in world units effectively halves.
+            // So we just translate by the camera position, but we might need to adjust the camera logic itself if it assumes 1:1 mapping.
+            // Let's try simple translation first, but scaled.
+            
+            // Actually, if we scale, we should translate first?
+            // Standard transform: translate(center), scale(zoom), translate(-center) - translate(camera)
+            
+            // Let's stick to: Scale -> Translate
+            // If we scale by 2, everything is drawn 2x bigger.
+            // To draw the world at (camX, camY), we translate by (-camX, -camY).
             ctx.translate(-state.camera.x, -state.camera.y);
 
             // Draw Grid
@@ -215,7 +234,6 @@ export function draw(timestamp) {
                 v.life -= 0.016; // approx per frame
                 if (v.life <= 0) state.attackVisuals.splice(i, 1);
             }
-        }
 
         // Layer 4: Player (Top)
         ctx.beginPath();
@@ -228,16 +246,24 @@ export function draw(timestamp) {
         drawWeapon();
 
         // 绘制玩家生命值
-        if (state.gameState !== 'LOBBY') {
-            ctx.fillStyle = 'white';
-            ctx.font = '16px Arial';
+        ctx.fillStyle = 'white';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(`生命: ${Math.ceil(state.player.hp)}/${state.player.maxHp}`, state.player.x, state.player.y - state.player.radius - 5);
+
+        // 绘制浮动文字
+        for (const ft of state.floatingTexts) {
+            ctx.globalAlpha = Math.max(0, ft.life);
+            ctx.fillStyle = ft.color;
+            ctx.font = 'bold 20px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
-            ctx.fillText(`生命: ${Math.ceil(state.player.hp)}/${state.player.maxHp}`, state.player.x, state.player.y - state.player.radius - 5);
+            ctx.fillText(ft.text, ft.x, ft.y);
+            ctx.globalAlpha = 1.0;
         }
 
-        if (state.gameState !== 'LOBBY') {
-            ctx.restore(); // Restore context for UI
+        ctx.restore(); // Restore context for UI
         }
 
         // Layer 5: UI Overlay
@@ -254,17 +280,6 @@ export function draw(timestamp) {
             // 绘制本局金币
             ctx.fillStyle = 'gold';
             ctx.fillText(`金币: ${state.sessionGold}`, 20, 50);
-
-            // 绘制浮动文字
-            for (const ft of state.floatingTexts) {
-                ctx.globalAlpha = Math.max(0, ft.life);
-                ctx.fillStyle = ft.color;
-                ctx.font = 'bold 20px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'bottom';
-                ctx.fillText(ft.text, ft.x, ft.y);
-                ctx.globalAlpha = 1.0;
-            }
         }
     }
 }

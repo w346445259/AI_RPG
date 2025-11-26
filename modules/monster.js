@@ -2,6 +2,7 @@ import { state } from './state.js';
 import { levelConfig } from '../config/spawnConfig.js';
 import { monsterConfig } from '../config/monsterConfig.js';
 import { monsterWeaponConfig } from '../config/monsterWeaponConfig.js';
+import { cameraConfig } from '../config/cameraConfig.js';
 import { handleVictory, handleGameOver } from './gameLogic.js';
 
 export function updateSpawning(timestamp) {
@@ -18,8 +19,10 @@ export function updateSpawning(timestamp) {
 export function spawnMonster() {
     let x, y;
     const cam = state.camera;
-    const viewW = state.canvas.width;
-    const viewH = state.canvas.height;
+    // Adjust spawn logic for 2x zoom
+    const zoomLevel = cameraConfig.zoomLevel;
+    const viewW = state.canvas.width / zoomLevel;
+    const viewH = state.canvas.height / zoomLevel;
     const worldW = state.worldWidth;
     const worldH = state.worldHeight;
     const margin = 50; // Distance from camera edge
@@ -72,7 +75,10 @@ export function spawnMonster() {
         }
     }
 
-    const typeId = Math.random() < 0.5 ? 1 : 2;
+    const config = levelConfig[state.currentLevel] || levelConfig[1];
+    const allowedTypes = config.monsterTypes || [1, 2];
+    const typeId = allowedTypes[Math.floor(Math.random() * allowedTypes.length)];
+    
     const stats = monsterConfig[typeId];
     const hpMultiplier = 1 + 0.1 * state.currentLevel;
 

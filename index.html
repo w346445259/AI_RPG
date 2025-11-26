@@ -29,6 +29,7 @@
                         <button id="start-btn">选择关卡</button>
                         <button id="upgrade-btn" style="background-color: #9C27B0;">修炼</button>
                         <button id="forging-btn" style="background-color: #FF9800;">锻造</button>
+                        <button id="smelting-btn" style="background-color: #FF5722;">熔炼</button>
                         <button id="inventory-btn" style="background-color: #795548;">背包</button>
                         <button id="debug-btn" style="background-color: #607D8B; margin-top: 10px;">调试功能</button>
                     </div>
@@ -117,17 +118,36 @@
                 <h1>锻造</h1>
                 <div class="forging-container">
                     <div class="forging-tabs">
-                        <button class="tab-btn active" data-tab="mortal-weapon">凡器</button>
+                        <button class="tab-btn active" data-tab="wood">木制品</button>
+                        <button class="tab-btn" data-tab="iron">铁制品</button>
+                        <button class="tab-btn" data-tab="refined-iron">精铁制品</button>
                     </div>
                     <div class="forging-content">
-                        <div id="content-mortal-weapon" class="tab-content">
-                            <h2>凡器锻造</h2>
-                            <p>使用凡铁矿锻造基础武器。</p>
-                            <div id="forging-list" class="upgrade-container"></div>
+                        <div id="content-wood" class="tab-content">
+                            <h2>木制品锻造</h2>
+                            <div id="forging-list-wood" class="upgrade-container"></div>
+                        </div>
+                        <div id="content-iron" class="tab-content hidden">
+                            <h2>铁制品锻造</h2>
+                            <div id="forging-list-iron" class="upgrade-container"></div>
+                        </div>
+                        <div id="content-refined-iron" class="tab-content hidden">
+                            <h2>精铁制品锻造</h2>
+                            <div id="forging-list-refined-iron" class="upgrade-container"></div>
                         </div>
                     </div>
                 </div>
                 <button id="btn-back-lobby-forging" style="margin-top: 20px; background-color: #607D8B;">返回大厅</button>
+            </div>
+
+            <div id="smelting-screen" class="screen hidden">
+                <h1>熔炼</h1>
+                <div class="smelting-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px; width: 80%; max-width: 800px;">
+                    <div class="upgrade-container" style="width: 100%; display: flex; justify-content: space-around; flex-wrap: wrap;">
+                        <!-- Smelting Items will be injected by JS -->
+                    </div>
+                </div>
+                <button id="btn-back-lobby-smelting" style="margin-top: 20px; background-color: #607D8B;">返回大厅</button>
             </div>
 
             <div id="inventory-screen" class="screen hidden">

@@ -2,13 +2,13 @@ import { state, initState } from './modules/state.js';
 import { draw } from './modules/renderer.js';
 import { 
     updateGoldDisplay, updatePlayerStatsDisplay, updateForgingUI, updateInventoryUI, 
-    updateLevelSelectionUI, updateCultivationUI, showNotification,
+    updateLevelSelectionUI, updateCultivationUI, showNotification, updateSmeltingUI,
     getExpThresholds, getStageName, getPlayerStats
 } from './modules/ui.js';
 import { 
     addExperience, initGame, selectLevel, handleGameOver 
 } from './modules/gameLogic.js';
-import { forgeWeapon, equipWeapon, addItem } from './modules/inventory.js';
+import { forgeWeapon, equipWeapon, addItem, smeltItem } from './modules/inventory.js';
 import { updatePlayerMovement, updateShooting } from './modules/player.js';
 import { updateSpawning, updateMonsters } from './modules/monster.js';
 import { updateBullets } from './modules/bullet.js';
@@ -42,6 +42,11 @@ resizeGame(); // Initial call
 window.forgeWeapon = forgeWeapon;
 window.equipWeapon = equipWeapon;
 window.selectLevel = selectLevel;
+window.smeltItem = (type) => {
+    if (smeltItem(type)) {
+        updateSmeltingUI();
+    }
+};
 
 // UI Elements (Querying here to bind events)
 const startScreen = document.getElementById('start-screen');
@@ -70,6 +75,9 @@ const btnBreakthroughMortal = document.getElementById('btn-breakthrough-mortal')
 const forgingScreen = document.getElementById('forging-screen');
 const forgingBtn = document.getElementById('forging-btn');
 const btnBackLobbyForging = document.getElementById('btn-back-lobby-forging');
+const smeltingScreen = document.getElementById('smelting-screen');
+const smeltingBtn = document.getElementById('smelting-btn');
+const btnBackLobbySmelting = document.getElementById('btn-back-lobby-smelting');
 const inventoryScreen = document.getElementById('inventory-screen');
 const inventoryBtn = document.getElementById('inventory-btn');
 const btnInventoryBackLobby = document.getElementById('btn-inventory-back-lobby');
@@ -122,10 +130,15 @@ function update(timestamp, dt) {
 
 function updateCamera() {
     // Deadzone logic: use config
-    const safeW = state.canvas.width * cameraConfig.deadzoneRatio;
-    const safeH = state.canvas.height * cameraConfig.deadzoneRatio;
-    const marginX = (state.canvas.width - safeW) / 2;
-    const marginY = (state.canvas.height - safeH) / 2;
+    // Since we are zoomed in by 2x, the effective viewport size in world coordinates is halved.
+    const zoomLevel = cameraConfig.zoomLevel;
+    const viewportWidth = state.canvas.width / zoomLevel;
+    const viewportHeight = state.canvas.height / zoomLevel;
+
+    const safeW = viewportWidth * cameraConfig.deadzoneRatio;
+    const safeH = viewportHeight * cameraConfig.deadzoneRatio;
+    const marginX = (viewportWidth - safeW) / 2;
+    const marginY = (viewportHeight - safeH) / 2;
 
     // Calculate camera target based on player position relative to current camera
     // If player is to the left of the safe zone
@@ -133,8 +146,8 @@ function updateCamera() {
         state.camera.x = state.player.x - marginX;
     }
     // If player is to the right of the safe zone
-    else if (state.player.x > state.camera.x + state.canvas.width - marginX) {
-        state.camera.x = state.player.x - (state.canvas.width - marginX);
+    else if (state.player.x > state.camera.x + viewportWidth - marginX) {
+        state.camera.x = state.player.x - (viewportWidth - marginX);
     }
 
     // If player is above the safe zone
@@ -142,13 +155,15 @@ function updateCamera() {
         state.camera.y = state.player.y - marginY;
     }
     // If player is below the safe zone
-    else if (state.player.y > state.camera.y + state.canvas.height - marginY) {
-        state.camera.y = state.player.y - (state.canvas.height - marginY);
+    else if (state.player.y > state.camera.y + viewportHeight - marginY) {
+        state.camera.y = state.player.y - (viewportHeight - marginY);
     }
 
     // Clamp camera to world bounds
-    state.camera.x = Math.max(0, Math.min(state.camera.x, state.worldWidth - state.canvas.width));
-    state.camera.y = Math.max(0, Math.min(state.camera.y, state.worldHeight - state.canvas.height));
+    // The camera shows a viewport of size (viewportWidth, viewportHeight).
+    // So the max x is worldWidth - viewportWidth.
+    state.camera.x = Math.max(0, Math.min(state.camera.x, state.worldWidth - viewportWidth));
+    state.camera.y = Math.max(0, Math.min(state.camera.y, state.worldHeight - viewportHeight));
 }
 
 // Event Listeners
@@ -228,6 +243,12 @@ forgingBtn.addEventListener('click', () => {
     updateForgingUI();
 });
 
+smeltingBtn.addEventListener('click', () => {
+    startScreen.classList.add('hidden');
+    smeltingScreen.classList.remove('hidden');
+    updateSmeltingUI();
+});
+
 inventoryBtn.addEventListener('click', () => {
     state.gameState = 'INVENTORY';
     startScreen.classList.add('hidden');
@@ -262,6 +283,11 @@ btnBackLobby.addEventListener('click', () => {
 
 btnBackLobbyForging.addEventListener('click', () => {
     forgingScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+});
+
+btnBackLobbySmelting.addEventListener('click', () => {
+    smeltingScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
 });
 
@@ -444,6 +470,11 @@ tabBtns.forEach(btn => {
         const tabId = btn.getAttribute('data-tab');
         const content = document.getElementById(`content-${tabId}`);
         if (content) content.classList.remove('hidden');
+
+        // Special handling for forging tabs to refresh the list
+        if (container.classList.contains('forging-tabs')) {
+            updateForgingUI();
+        }
     });
 });
 
