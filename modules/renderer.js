@@ -277,9 +277,9 @@ export function draw(timestamp) {
             ctx.textBaseline = 'top';
             ctx.fillText(`击杀: ${state.killCount} / ${maxKills} (关卡 ${state.currentLevel})`, 20, 20);
 
-            // 绘制本局金币
-            ctx.fillStyle = 'gold';
-            ctx.fillText(`金币: ${state.sessionGold}`, 20, 50);
+            // 绘制本局灵石
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillText(`灵石: ${state.sessionSpiritStones}`, 20, 50);
         }
     }
 }

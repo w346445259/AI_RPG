@@ -4,13 +4,20 @@
 目的：帮助 AI 编码代理快速上手并在此仓库中安全、可预测地做出改动。
 
 核心概览
-- **单页 HTML5 Canvas 游戏**：入口是 `index.html`，主要逻辑在 `main.js`，可配置数据集中在 `config/` 下（`playerConfig.js`、`monsterConfig.js`、`spawnConfig.js`、`weaponConfig.js`）。
+- **单页 HTML5 Canvas 游戏**：入口是 `index.html`，主要逻辑分散在 `modules/` 下，`main.js` 作为入口和胶水代码。
+- **模块化架构**：
+  - `main.js`: 游戏入口，初始化，主循环。
+  - `modules/gameLogic.js`: 核心游戏流程控制（开始、结束、关卡选择）。
+  - `modules/cultivation.js`: 修仙系统逻辑（境界、突破、挂机）。
+  - `modules/uiEvents.js`: DOM 事件监听管理。
+  - `modules/ui.js`: UI 更新逻辑的聚合入口。
+  - `modules/camera.js`: 摄像机逻辑。
 - **持久化**：使用 `localStorage` 保存 `totalGold`, `totalReiki`, `cultivationStage`, `equippedWeaponId` 等键。
-- **渲染/逻辑分离**：`main.js` 包含游戏循环、输入处理、UI 事件和对 `config/*` 的读取；配置文件仅导出静态对象。
 
 重要文件与模式（快速参考）
 - `index.html`：包含画布 `id="gameCanvas"` 和多个 UI 元素（例如 `start-btn`, `restart-btn`, `gold-display` 等），修改 UI 时先检查这些 id。
-- `main.js`：所有游戏状态、循环、渲染与事件监听都在这里。它通过 `import { ... } from './config/...'` 加载配置。
+- `main.js`：初始化 State，启动 Loop，挂载全局 Window 函数。
+- `modules/uiEvents.js`: 集中管理所有 DOM 事件监听（按钮点击等）。
 - `config/*.js`：添加或调整数值（如怪物属性、武器属性、关卡产出率）时优先在这里修改。
 - `assets/`：图标与静态资源；配置中的 `iconPath` 使用相对路径（例如 `assets/pistol.png`）。
 
@@ -52,7 +59,7 @@
 约束与本仓库特有约定
 - **所有代码注释必须使用中文**（中文简体）。
 - **UI 文本必须是中文**（现有 HTML 文案已为中文）。
-- 主要逻辑集中在 `main.js`，避免将大量新逻辑分散到多个新文件，除非为清晰重构并配有说明。
+- **模块化开发**：新功能应尽量封装在 `modules/` 下的独立文件中，避免 `main.js` 再次膨胀。
 
 外部依赖
 - 仅开发依赖：`vite`（见 `package.json`）。无后端或额外服务。

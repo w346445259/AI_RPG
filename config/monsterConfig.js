@@ -8,8 +8,8 @@ export const monsterConfig = {
         color: '#81C784', // 浅绿色
         damage: 15, // 伤害提升
         defense: 0,
-        goldMin: 1,
-        goldMax: 3,
+        spiritStonesMin: 1,
+        spiritStonesMax: 3,
         weaponId: 4, // 木棍
         windUpTime: 1200 // 攻击前摇时间 (ms)
     },
@@ -21,8 +21,8 @@ export const monsterConfig = {
         color: '#E57373', // 浅红色
         damage: 25, // 伤害较高
         defense: 0,
-        goldMin: 2,
-        goldMax: 5,
+        spiritStonesMin: 2,
+        spiritStonesMax: 5,
         weaponId: 3, // 长弓
         windUpTime: 800 // 攻击前摇时间 (ms)
     }

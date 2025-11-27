@@ -80,7 +80,15 @@ export function spawnMonster() {
     const typeId = allowedTypes[Math.floor(Math.random() * allowedTypes.length)];
     
     const stats = monsterConfig[typeId];
-    const hpMultiplier = 1 + 0.1 * state.currentLevel;
+    // Base HP multiplier from level progression (existing logic)
+    let hpMultiplier = 1 + 0.1 * state.currentLevel;
+    
+    // Apply difficulty multiplier from level config (new logic)
+    const difficultyMultiplier = config.difficultyMultiplier || 1;
+    hpMultiplier *= difficultyMultiplier;
+
+    const damageMultiplier = difficultyMultiplier;
+    const spiritStonesMultiplier = config.spiritStonesMultiplier || 1;
 
     state.monstersSpawned++;
 
@@ -93,10 +101,10 @@ export function spawnMonster() {
         maxHp: stats.hp * hpMultiplier,
         speed: stats.speed,
         color: stats.color,
-        damage: stats.damage,
-        defense: stats.defense,
-        goldMin: stats.goldMin,
-        goldMax: stats.goldMax,
+        damage: stats.damage * damageMultiplier,
+        defense: stats.defense * difficultyMultiplier,
+        spiritStonesMin: Math.floor(stats.spiritStonesMin * spiritStonesMultiplier),
+        spiritStonesMax: Math.floor(stats.spiritStonesMax * spiritStonesMultiplier),
         typeId: typeId,
         weaponId: stats.weaponId,
         lastAttackTime: performance.now()
@@ -264,15 +272,15 @@ export function handleMonsterDeath(monster) {
     if (mIndex > -1) {
         state.monsters.splice(mIndex, 1);
         
-        const goldDrop = Math.floor(Math.random() * (monster.goldMax - monster.goldMin + 1)) + monster.goldMin;
-        state.sessionGold += goldDrop;
+        const spiritStonesDrop = Math.floor(Math.random() * (monster.spiritStonesMax - monster.spiritStonesMin + 1)) + monster.spiritStonesMin;
+        state.sessionSpiritStones += spiritStonesDrop;
         
         state.floatingTexts.push({
             x: monster.x,
             y: monster.y,
-            text: `+${goldDrop}`,
+            text: `+${spiritStonesDrop}`,
             life: 1.0,
-            color: 'gold'
+            color: '#87CEEB'
         });
         
         state.killCount++;

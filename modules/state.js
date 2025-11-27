@@ -33,17 +33,21 @@ export const state = {
     hasWon: false,
     
     // Economy & Stats
-    totalGold: 0,
+    totalSpiritStones: 0,
+    hasUnlockedSpiritStones: false,
     totalReiki: 0,
+    spiritualPower: 0, // 灵力 (新增)
     totalExp: 0,
     cultivationStage: 0,
-    sessionGold: 0,
+    bodyStrengtheningLevel: 0, // 气血锻体等级 (新增)
+    sessionSpiritStones: 0,
     sessionInventory: {},
     
     // Inventory
     inventory: {},
     ownedWeapons: [4],
     equippedWeaponId: 4,
+    activeFormations: {}, // { formationId: boolean }
     
     // Input
     keys: {},
@@ -52,6 +56,7 @@ export const state = {
     lastShotTime: 0,
     lastSpawnTime: 0,
     monsterIdCounter: 0,
+    lastSaveTime: 0, // 上次保存时间 (用于离线收益)
     
     // Burst Fire
     burstShotsRemaining: 0,
@@ -65,12 +70,24 @@ export const state = {
 };
 
 export function initState() {
-    state.totalGold = parseInt(localStorage.getItem('totalGold')) || 0;
+    // Migration: Check for old 'totalGold' key
+    const oldGold = localStorage.getItem('totalGold');
+    if (oldGold !== null) {
+        localStorage.setItem('totalSpiritStones', oldGold);
+        localStorage.removeItem('totalGold');
+    }
+
+    state.totalSpiritStones = parseInt(localStorage.getItem('totalSpiritStones')) || 0;
+    state.hasUnlockedSpiritStones = (localStorage.getItem('hasUnlockedSpiritStones') === 'true') || (state.totalSpiritStones > 0);
     state.totalReiki = parseInt(localStorage.getItem('totalReiki')) || playerConfig.initialReiki || 0;
+    state.spiritualPower = parseFloat(localStorage.getItem('spiritualPower')) || 0;
     state.totalExp = parseInt(localStorage.getItem('totalExp')) || 0;
     state.cultivationStage = parseInt(localStorage.getItem('cultivationStage')) || 0;
+    state.bodyStrengtheningLevel = parseInt(localStorage.getItem('bodyStrengtheningLevel')) || 0;
     state.equippedWeaponId = parseInt(localStorage.getItem('equippedWeaponId')) || 4;
     state.inventory = JSON.parse(localStorage.getItem('inventory')) || {};
     state.ownedWeapons = JSON.parse(localStorage.getItem('ownedWeapons')) || [4];
+    state.activeFormations = JSON.parse(localStorage.getItem('activeFormations')) || {};
     state.maxUnlockedLevel = parseInt(localStorage.getItem('maxUnlockedLevel')) || 1;
+    state.lastSaveTime = parseInt(localStorage.getItem('lastSaveTime')) || Date.now();
 }

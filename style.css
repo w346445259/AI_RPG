@@ -66,6 +66,43 @@ canvas {
     border-right: 1px solid #444;
     color: white;
     background: rgba(0, 0, 0, 0.85); /* 背景移动到这里 */
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.resource-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 90%;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.resource-group > div {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+#next-level-exp-display {
+    grid-column: span 2;
+}
+
+.action-buttons-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    width: 90%;
+    margin-top: 10px;
+}
+
+.action-buttons-grid button {
+    margin: 0;
+    width: 100%;
+    font-size: 18px;
+    padding: 12px;
 }
 
 .lobby-right {
@@ -108,16 +145,16 @@ button:hover {
 }
 
 #gold-display {
-    font-size: 24px;
+    font-size: 18px;
     color: gold;
-    margin-bottom: 10px;
+    margin-bottom: 0;
     font-weight: bold;
 }
 
 #reiki-display {
-    font-size: 24px;
+    font-size: 18px;
     color: #00BFFF;
-    margin-bottom: 20px;
+    margin-bottom: 0;
     font-weight: bold;
 }
 
@@ -302,4 +339,29 @@ button:hover {
 .notification-toast.show {
     opacity: 1;
     transform: translateY(0);
+}
+
+/* Level Selection Tabs */
+.level-tabs .tab-btn {
+    background-color: #333;
+    color: #ccc;
+    border: 1px solid #555;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    text-align: center;
+    width: auto;
+    margin: 0;
+}
+
+.level-tabs .tab-btn:hover {
+    background-color: #444;
+    color: white;
+}
+
+.level-tabs .tab-btn.active {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+    border-left: 1px solid #4CAF50; /* Override default tab-btn style */
 }

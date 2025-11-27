@@ -28,7 +28,14 @@ export function updateShooting(timestamp) {
     }
 
     if (weapon.type === 'melee-sweep' || weapon.type === 'melee-thrust' || weapon.type === 'melee-smash') {
-        if (timestamp - state.lastShotTime > weapon.fireRate) {
+        const stats = getPlayerStats();
+        // Agility affects attack speed (Non-linear formula)
+        // Multiplier = 1 + (MaxBonus * Agility) / (Agility + HalfwayPoint)
+        // MaxBonus = 4 (Max 5x speed), HalfwayPoint = 500 (Slower curve)
+        const agilityMultiplier = 1 + (4 * stats.agility) / (stats.agility + 500);
+        const actualFireRate = weapon.fireRate / agilityMultiplier;
+
+        if (timestamp - state.lastShotTime > actualFireRate) {
             const target = getNearestMonster();
             if (target) {
                 const dx = target.x - state.player.x;
@@ -139,7 +146,12 @@ export function updateShooting(timestamp) {
         return;
     }
 
-    if (timestamp - state.lastShotTime > weapon.fireRate) {
+    const stats = getPlayerStats();
+    // Agility affects attack speed (Non-linear formula)
+    const agilityMultiplier = 1 + (4 * stats.agility) / (stats.agility + 500);
+    const actualFireRate = weapon.fireRate / agilityMultiplier;
+
+    if (timestamp - state.lastShotTime > actualFireRate) {
         const target = getNearestMonster();
         if (target) {
             state.burstTargetId = target.id;

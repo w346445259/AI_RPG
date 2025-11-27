@@ -1,43 +1,14 @@
 import { state } from './state.js';
 import { 
-    updateCultivationUI, updatePlayerStatsDisplay, showNotification, 
-    getExpThresholds, getStageName, showGameOverScreen, showLevelClearedOverlay,
+    showGameOverScreen, showLevelClearedOverlay,
     hideLevelSelectionScreen, showPauseBtn, hideLevelClearedOverlay
 } from './ui.js';
 import { persistSessionItems } from './inventory.js';
 import { spawnOres } from './ore.js';
 import { levelConfig } from '../config/spawnConfig.js';
 import { itemConfig } from '../config/itemConfig.js';
-import { getPlayerStats } from './ui.js'; // Re-use getPlayerStats from UI or move it to utils/player? It's in UI now.
-
-export function addExperience(amount) {
-    state.totalExp += amount;
-    const oldStage = state.cultivationStage;
-    state.cultivationStage = calculateStageFromExp(state.totalExp);
-    
-    localStorage.setItem('totalExp', state.totalExp);
-    localStorage.setItem('cultivationStage', state.cultivationStage);
-    
-    if (state.cultivationStage > oldStage) {
-        showNotification(`境界提升！当前境界: ${getStageName(state.cultivationStage)}`);
-    }
-    
-    updateCultivationUI();
-    updatePlayerStatsDisplay();
-}
-
-export function calculateStageFromExp(exp) {
-    const thresholds = getExpThresholds();
-    let stage = 0;
-    for (let i = 1; i <= 10; i++) {
-        if (exp >= thresholds[i]) {
-            stage = i;
-        } else {
-            break;
-        }
-    }
-    return stage;
-}
+import { getPlayerStats } from './playerStats.js';
+import { addExperience } from './cultivation.js';
 
 export function handleVictory() {
     state.hasWon = true;
@@ -45,8 +16,8 @@ export function handleVictory() {
         state.maxUnlockedLevel++;
         localStorage.setItem('maxUnlockedLevel', state.maxUnlockedLevel);
     }
-    state.totalGold += state.sessionGold;
-    localStorage.setItem('totalGold', state.totalGold);
+    state.totalSpiritStones += state.sessionSpiritStones;
+    localStorage.setItem('totalSpiritStones', state.totalSpiritStones);
     
     const config = levelConfig[state.currentLevel] || levelConfig[1];
     const winExp = config.winExp || 0;
@@ -65,12 +36,12 @@ export function handleVictory() {
         itemRewardStr += items.join(", ");
     }
     persistSessionItems();
-    showLevelClearedOverlay(`获得金币: ${state.sessionGold} | 获得经验: ${winExp}${itemRewardStr}`);
+    showLevelClearedOverlay(`获得灵石: ${state.sessionSpiritStones} | 获得气血: ${winExp}${itemRewardStr}`);
 }
 
 export function handleGameOver() {
     state.gameState = 'GAMEOVER';
-    showGameOverScreen(state.sessionGold);
+    showGameOverScreen(state.sessionSpiritStones);
 }
 
 export function initGame() {
@@ -94,7 +65,7 @@ export function initGame() {
     state.monsterIdCounter = 0;
     state.killCount = 0;
     state.monstersSpawned = 0;
-    state.sessionGold = 0;
+    state.sessionSpiritStones = 0;
     state.sessionInventory = {};
     state.hasWon = false;
     

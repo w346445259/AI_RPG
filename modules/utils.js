@@ -1,4 +1,47 @@
 import { state } from './state.js';
+import { bodyRefiningConfig, realmBaseConfig } from '../config/cultivationConfig.js';
+
+export function getExpThresholds() {
+    const thresholds = {};
+    let acc = 0;
+    
+    // Stage 1 (凡人 -> 锻体1阶)
+    acc += realmBaseConfig[1].cost; // 20
+    thresholds[1] = acc;
+
+    // Stage 2 to 9 (锻体期各阶)
+    for (let i = 2; i <= 9; i++) {
+        acc += bodyRefiningConfig.getCost(i);
+        thresholds[i] = acc;
+    }
+
+    // Stage 10 (锻体 -> 筑基)
+    acc += realmBaseConfig[10].cost;
+    thresholds[10] = acc;
+
+    return thresholds;
+}
+
+export function getStageName(stage) {
+    if (stage === 0) return "凡人";
+    if (stage >= 1 && stage <= 9) return `锻体期 ${stage}阶`;
+    if (stage >= 10 && stage <= 18) return `练气期 ${stage - 9}层`;
+    if (stage >= 19) return "筑基期";
+    return "未知";
+}
+
+export function calculateStageFromExp(exp) {
+    const thresholds = getExpThresholds();
+    let stage = 0;
+    for (let i = 1; i <= 10; i++) {
+        if (exp >= thresholds[i]) {
+            stage = i;
+        } else {
+            break;
+        }
+    }
+    return stage;
+}
 
 export function getNearestMonster() {
     if (state.monsters.length === 0) return null;
