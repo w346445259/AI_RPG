@@ -76,7 +76,7 @@ export function updateReikiDisplay() {
     }
 
     if (meditationRateDisplay) {
-        meditationRateDisplay.textContent = gainPerSecond.toFixed(2);
+        meditationRateDisplay.textContent = `+${gainPerSecond.toFixed(2)}`;
     }
 
     if (meditationBonusDisplay) {

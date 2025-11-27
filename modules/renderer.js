@@ -252,13 +252,19 @@ export function draw(timestamp) {
         ctx.textBaseline = 'bottom';
         ctx.fillText(`生命: ${Math.ceil(state.player.hp)}/${state.player.maxHp}`, state.player.x, state.player.y - state.player.radius - 5);
 
-        // 绘制浮动文字
+        // Layer 5: Floating Texts (Highest Priority in World Space)
         for (const ft of state.floatingTexts) {
             ctx.globalAlpha = Math.max(0, ft.life);
             ctx.fillStyle = ft.color;
-            ctx.font = 'bold 20px Arial';
+            ctx.font = 'bold 24px Arial'; // 增大字体
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
+            
+            // 添加描边，使文字更清晰
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 3;
+            ctx.strokeText(ft.text, ft.x, ft.y);
+            
             ctx.fillText(ft.text, ft.x, ft.y);
             ctx.globalAlpha = 1.0;
         }
@@ -266,7 +272,7 @@ export function draw(timestamp) {
         ctx.restore(); // Restore context for UI
         }
 
-        // Layer 5: UI Overlay
+        // Layer 6: UI Overlay (Screen Space)
         if (state.gameState !== 'LOBBY') {
             const config = levelConfig[state.currentLevel] || levelConfig[1];
             const maxKills = config.winKillCount || 50;

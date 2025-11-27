@@ -1,6 +1,8 @@
 import { state } from './state.js';
 import { playerConfig } from '../config/playerConfig.js';
 import { bodyRefiningConfig, realmBaseConfig, qiCondensationConfig, bodyStrengtheningConfig } from '../config/cultivationConfig.js';
+import { buffConfig } from '../config/buffConfig.js';
+import { formationConfig } from '../config/formationConfig.js';
 
 export function getPlayerStats() {
     let bonusStrength = 0;
@@ -62,17 +64,72 @@ export function getPlayerStats() {
     }
 
     const totalPhysique = playerConfig.physique + bonusPhysique;
-    const maxHp = playerConfig.maxHp + (totalPhysique * 10);
-    const hpRegen = totalPhysique * 0.1;
+    let maxHp = playerConfig.maxHp + (totalPhysique * 10);
+    let hpRegen = totalPhysique * 0.1;
+    
+    let finalStrength = playerConfig.strength + bonusStrength;
+    let finalAgility = playerConfig.agility + bonusAgility;
+    let finalComprehension = playerConfig.comprehension + bonusComprehension;
+    let finalDefense = playerConfig.defense + bonusDefense;
+    let finalSpiritualPower = bonusSpiritualPower;
+    let finalSpeed = playerConfig.speed; // Base speed is usually handled in playerConfig but let's expose it here
+
+    // Apply Buffs
+    if (state.activeBuffs) {
+        state.activeBuffs.forEach(buff => {
+            const config = buffConfig[buff.id];
+            if (!config) return;
+            
+            const value = config.value;
+            
+            if (config.type === 'stat_flat') {
+                if (config.stat === 'strength') finalStrength += value;
+                if (config.stat === 'defense') finalDefense += value;
+                if (config.stat === 'agility') finalAgility += value;
+                if (config.stat === 'speed') finalSpeed += value;
+            } else if (config.type === 'stat_multiplier') {
+                if (config.stat === 'strength') finalStrength *= (1 + value);
+                if (config.stat === 'defense') finalDefense *= (1 + value);
+                if (config.stat === 'agility') finalAgility *= (1 + value);
+                if (config.stat === 'speed') finalSpeed *= (1 + value);
+            }
+        });
+    }
+
+    // Apply Combat Formations
+    if (state.activeFormations) {
+        for (const id in state.activeFormations) {
+            if (state.activeFormations[id]) {
+                const config = formationConfig[id];
+                if (config && config.type === 'combat') {
+                    const value = config.value;
+                    if (config.valueType === 'flat') {
+                        if (config.stat === 'strength') finalStrength += value;
+                        if (config.stat === 'defense') finalDefense += value;
+                        if (config.stat === 'agility') finalAgility += value;
+                        if (config.stat === 'speed') finalSpeed += value;
+                        if (config.stat === 'hpRegen') hpRegen += value;
+                    } else if (config.valueType === 'multiplier') {
+                        if (config.stat === 'strength') finalStrength *= (1 + value);
+                        if (config.stat === 'defense') finalDefense *= (1 + value);
+                        if (config.stat === 'agility') finalAgility *= (1 + value);
+                        if (config.stat === 'speed') finalSpeed *= (1 + value);
+                        if (config.stat === 'hpRegen') hpRegen *= (1 + value);
+                    }
+                }
+            }
+        }
+    }
 
     return {
-        strength: playerConfig.strength + bonusStrength,
-        agility: playerConfig.agility + bonusAgility,
-        comprehension: playerConfig.comprehension + bonusComprehension,
-        defense: playerConfig.defense + bonusDefense,
-        physique: totalPhysique,
-        spiritualPower: bonusSpiritualPower, // 灵力 (新增属性)
-        maxHp: maxHp,
-        hpRegen: hpRegen
+        strength: Math.floor(finalStrength),
+        agility: Math.floor(finalAgility),
+        comprehension: Math.floor(finalComprehension),
+        defense: Math.floor(finalDefense),
+        physique: Math.floor(totalPhysique),
+        spiritualPower: Math.floor(finalSpiritualPower),
+        maxHp: Math.floor(maxHp),
+        hpRegen: hpRegen,
+        speed: Math.floor(finalSpeed) // Return calculated speed
     };
 }

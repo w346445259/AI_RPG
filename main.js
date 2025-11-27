@@ -2,7 +2,7 @@ import { state, initState } from './modules/state.js';
 import { draw } from './modules/renderer.js';
 import { 
     updateSpiritStonesDisplay, updatePlayerStatsDisplay, updateSmeltingUI, updateCultivationUI,
-    switchLevelTab, getPlayerStats
+    switchLevelTab, getPlayerStats, updateBuffUI
 } from './modules/ui.js';
 import { 
     initGame, selectLevel
@@ -18,6 +18,8 @@ import {
     attemptBodyRefiningBreakthrough, attemptQiBreakthrough 
 } from './modules/cultivation.js';
 import { setupUIEvents } from './modules/uiEvents.js';
+import { updateBuffs, applyBuff } from './modules/buff.js';
+import { updateFormations } from './modules/formationLogic.js';
 
 // Initialize State
 state.canvas = document.getElementById('gameCanvas');
@@ -51,6 +53,7 @@ window.switchLevelTab = switchLevelTab;
 window.strengthenBody = strengthenBody;
 window.attemptBodyRefiningBreakthrough = attemptBodyRefiningBreakthrough;
 window.attemptQiBreakthrough = attemptQiBreakthrough;
+window.applyBuff = applyBuff;
 window.smeltItem = (type) => {
     if (smeltItem(type)) {
         updateSmeltingUI();
@@ -139,12 +142,15 @@ function update(timestamp, dt) {
     updateBullets(dt);
     updateMonsters(timestamp, dt);
     updateOres(timestamp, dt);
+    updateBuffs(dt);
+    updateBuffUI();
+    updateFormations(dt);
     
     // Floating texts update
     for (let i = state.floatingTexts.length - 1; i >= 0; i--) {
         const ft = state.floatingTexts[i];
         ft.life -= dt; // Use dt for life
-        ft.y -= 30 * dt; // Speed 30 px/s
+        ft.y -= 60 * dt; // Speed 60 px/s (加快上浮速度)
         if (ft.life <= 0) state.floatingTexts.splice(i, 1);
     }
 }

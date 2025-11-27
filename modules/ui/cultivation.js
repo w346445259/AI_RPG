@@ -282,11 +282,5 @@ export function updateMeditationUI() {
 
     meditationPanel.style.display = 'block';
     
-    const stats = getPlayerStats();
-    const baseRate = 0; 
-    const gainPerSecond = baseRate + (stats.comprehension * 0.1);
-    
-    if (meditationRateDisplay) {
-        meditationRateDisplay.textContent = `+${gainPerSecond.toFixed(2)}`;
-    }
+    // Rate display is handled by updateReikiDisplay in lobby.js (called every frame)
 }

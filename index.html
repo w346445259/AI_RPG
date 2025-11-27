@@ -17,6 +17,11 @@
             <!-- Pause Button (Visible during gameplay) -->
             <button id="pause-btn" class="hidden" style="position: absolute; top: 20px; right: 20px; z-index: 20;">暂停</button>
 
+            <!-- Buff Bar -->
+            <div id="buff-bar" class="hidden" style="position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 20;">
+                <!-- Buff Icons will be injected here -->
+            </div>
+
             <div id="start-screen" class="screen">
                 <div class="lobby-container">
                     <div class="lobby-left">
@@ -196,6 +201,10 @@
             <div id="formation-screen" class="screen hidden">
                 <h1>阵法</h1>
                 <div class="formation-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px; width: 80%; max-width: 800px; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px; height: 60%;">
+                    <div class="formation-tabs" style="display: flex; gap: 20px; margin-bottom: 10px;">
+                        <button class="tab-btn active" data-tab="gathering" onclick="window.switchFormationTab('gathering')">聚灵阵法</button>
+                        <button class="tab-btn" data-tab="combat" onclick="window.switchFormationTab('combat')">战斗阵法</button>
+                    </div>
                     <div id="formation-list" class="upgrade-container" style="width: 100%; display: flex; justify-content: center; flex-wrap: wrap; overflow-y: auto;">
                         <!-- Formation Items will be injected by JS -->
                     </div>
@@ -255,6 +264,12 @@
 
                         <button id="debug-unlock-levels-btn" style="background-color: #9C27B0; margin-top: 10px;">解锁所有关卡</button>
 
+                        <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                            <button onclick="window.applyBuff(1, 10)" style="background-color: #E91E63;">Buff: 攻击 (+20%)</button>
+                            <button onclick="window.applyBuff(2, 10)" style="background-color: #3F51B5;">Buff: 防御 (+10)</button>
+                            <button onclick="window.applyBuff(3, 10)" style="background-color: #009688;">Buff: 移速 (+30%)</button>
+                        </div>
+
                         <button id="clear-data-btn" style="background-color: #f44336; margin-top: 20px;">清除所有存档</button>
                     </div>
                     <button id="btn-close-debug" style="margin-top: 30px; background-color: #607D8B;">关闭</button>
@@ -295,6 +310,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Custom Tooltip (Moved to body for correct positioning independent of game scaling) -->
+    <div id="game-tooltip" class="hidden" style="position: fixed; background: rgba(0, 0, 0, 0.9); color: white; padding: 10px; border: 1px solid #fff; border-radius: 5px; pointer-events: none; z-index: 2000; white-space: pre-line; font-size: 14px;"></div>
 
     <script type="module" src="/main.js"></script>
 </body>

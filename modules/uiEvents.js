@@ -2,7 +2,7 @@ import { state } from './state.js';
 import { 
     updateSpiritStonesDisplay, updatePlayerStatsDisplay, updateForgingUI, updateInventoryUI, 
     updateLevelSelectionUI, updateCultivationUI, updateSmeltingUI, updateFormationUI, showNotification,
-    setupStatInteractions
+    setupStatInteractions, updateBuffUI
 } from './ui.js';
 import { 
     addExperience, attemptBodyRefiningBreakthrough, updateMeditation
@@ -252,6 +252,7 @@ export function setupUIEvents() {
         levelClearedOverlay.classList.add('hidden');
         updateSpiritStonesDisplay();
         updatePlayerStatsDisplay();
+        updateBuffUI();
         const stats = getPlayerStats();
         state.player.x = state.canvas.width * 0.7;
         state.player.y = state.canvas.height * 0.6;
@@ -286,6 +287,7 @@ export function setupUIEvents() {
         pauseBtn.classList.add('hidden');
         updateSpiritStonesDisplay();
         updatePlayerStatsDisplay();
+        updateBuffUI();
         const stats = getPlayerStats();
         state.player.x = state.canvas.width * 0.7;
         state.player.y = state.canvas.height * 0.6;
@@ -354,6 +356,7 @@ export function setupUIEvents() {
         state.sessionInventory = {};
         updateSpiritStonesDisplay();
         updatePlayerStatsDisplay();
+        updateBuffUI();
         const stats = getPlayerStats();
         state.player.x = state.canvas.width * 0.7;
         state.player.y = state.canvas.height * 0.6;

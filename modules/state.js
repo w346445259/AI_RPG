@@ -48,6 +48,7 @@ export const state = {
     ownedWeapons: [4],
     equippedWeaponId: 4,
     activeFormations: {}, // { formationId: boolean }
+    activeBuffs: [], // { id, duration, maxDuration }
     
     // Input
     keys: {},

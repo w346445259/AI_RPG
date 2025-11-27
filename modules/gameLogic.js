@@ -1,7 +1,8 @@
 import { state } from './state.js';
 import { 
     showGameOverScreen, showLevelClearedOverlay,
-    hideLevelSelectionScreen, showPauseBtn, hideLevelClearedOverlay
+    hideLevelSelectionScreen, showPauseBtn, hideLevelClearedOverlay,
+    updateSpiritStonesDisplay, showNotification
 } from './ui.js';
 import { persistSessionItems } from './inventory.js';
 import { spawnOres } from './ore.js';
@@ -9,6 +10,7 @@ import { levelConfig } from '../config/spawnConfig.js';
 import { itemConfig } from '../config/itemConfig.js';
 import { getPlayerStats } from './playerStats.js';
 import { addExperience } from './cultivation.js';
+import { formationConfig } from '../config/formationConfig.js';
 
 export function handleVictory() {
     state.hasWon = true;
@@ -45,6 +47,35 @@ export function handleGameOver() {
 }
 
 export function initGame() {
+    // Check Formation Cost
+    const activeFormationIds = Object.keys(state.activeFormations).filter(id => state.activeFormations[id]);
+    let battleCost = 0;
+
+    for (const id of activeFormationIds) {
+        const config = formationConfig[id];
+        if (config && config.costPerBattle) {
+            battleCost += config.costPerBattle;
+        }
+    }
+
+    if (battleCost > 0) {
+        if (state.totalSpiritStones >= battleCost) {
+            state.totalSpiritStones -= battleCost;
+            localStorage.setItem('totalSpiritStones', state.totalSpiritStones);
+            updateSpiritStonesDisplay();
+            showNotification(`战斗阵法生效，消耗 ${battleCost} 灵石`);
+        } else {
+            // Deactivate combat formations
+            activeFormationIds.forEach(id => {
+                const config = formationConfig[id];
+                if (config && config.costPerBattle) {
+                    state.activeFormations[id] = false;
+                }
+            });
+            showNotification(`灵石不足，战斗阵法已失效`);
+        }
+    }
+
     const stats = getPlayerStats();
     // Spawn player in the middle of the world
     state.player.x = state.worldWidth / 2;
@@ -68,6 +99,7 @@ export function initGame() {
     state.sessionSpiritStones = 0;
     state.sessionInventory = {};
     state.hasWon = false;
+    state.activeBuffs = [];
     
     spawnOres();
 
