@@ -2,7 +2,8 @@ import { state, initState } from './modules/state.js';
 import { draw } from './modules/renderer.js';
 import { 
     updateSpiritStonesDisplay, updatePlayerStatsDisplay, updateSmeltingUI, updateCultivationUI,
-    switchLevelTab, getPlayerStats, updateBuffUI, hideLevelClearedOverlay
+    switchLevelTab, getPlayerStats, updateBuffUI, hideLevelClearedOverlay,
+    initBattleStatsUI, updateBattleStatsPanel, initPlayerHealthPanel, updatePlayerHealthPanel
 } from './modules/ui.js';
 import { 
     initGame, selectLevel
@@ -83,6 +84,8 @@ window.openCultivationScreen = () => {
 
 // Setup UI Events
 setupUIEvents();
+initBattleStatsUI();
+initPlayerHealthPanel();
 hideLevelClearedOverlay();
 
 // Initial UI Update
@@ -125,6 +128,11 @@ function loop(timestamp) {
             }
         }
     }
+
+    if (state.gameState !== 'PLAYING') {
+        updateBattleStatsPanel();
+        updatePlayerHealthPanel();
+    }
     
     draw(timestamp);
     requestAnimationFrame(loop);
@@ -135,6 +143,7 @@ function update(timestamp, dt) {
 
     // HP Regen
     const stats = getPlayerStats();
+    state.player.speed = stats.speed;
     if (state.player.hp < stats.maxHp && state.player.hp > 0) {
         state.player.hp += stats.hpRegen * dt;
         if (state.player.hp > stats.maxHp) state.player.hp = stats.maxHp;
@@ -149,6 +158,8 @@ function update(timestamp, dt) {
     updateOres(timestamp, dt);
     updateBuffs(dt);
     updateBuffUI();
+    updateBattleStatsPanel(stats);
+    updatePlayerHealthPanel(stats);
     updateFormations(dt);
     
     // Floating texts update

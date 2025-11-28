@@ -9,6 +9,19 @@ import { updateBuffUI } from './buff.js';
 const formationList = document.getElementById('formation-list');
 let currentFormationTab = 'gathering';
 
+function getActiveCombatFormationCount() {
+    if (!state.activeFormations) return 0;
+    let count = 0;
+    Object.keys(state.activeFormations).forEach(id => {
+        if (!state.activeFormations[id]) return;
+        const formation = formationConfig[id];
+        if (formation && formation.type === 'combat') {
+            count++;
+        }
+    });
+    return count;
+}
+
 export function switchFormationTab(tab) {
     currentFormationTab = tab;
     
@@ -28,6 +41,23 @@ export function updateFormationUI() {
     if (!formationList) return;
     
     formationList.innerHTML = '';
+
+    const currentCombatCount = getActiveCombatFormationCount();
+    const combatLimitValue = state.maxCombatFormations || 0;
+    const combatLimitText = combatLimitValue > 0 ? combatLimitValue : '∞';
+    if (currentFormationTab === 'combat') {
+        const usageBanner = document.createElement('div');
+        usageBanner.style.width = '100%';
+        usageBanner.style.marginBottom = '10px';
+        usageBanner.style.padding = '8px 12px';
+        usageBanner.style.background = 'rgba(135, 206, 235, 0.15)';
+        usageBanner.style.border = '1px solid rgba(135, 206, 235, 0.5)';
+        usageBanner.style.borderRadius = '6px';
+        usageBanner.style.color = '#87CEEB';
+        usageBanner.style.fontSize = '14px';
+        usageBanner.textContent = `当前上阵: (${currentCombatCount}/${combatLimitText})`;
+        formationList.appendChild(usageBanner);
+    }
     
     Object.values(formationConfig).forEach(formation => {
         // Filter by tab
@@ -128,12 +158,33 @@ window.toggleFormation = function(id) {
         state.activeFormations[id] = false;
         showNotification("阵法已关闭");
     } else {
-        // 开启前检查同类型互斥
-        for (const otherId in state.activeFormations) {
-            if (state.activeFormations[otherId]) {
-                const otherFormation = formationConfig[otherId];
-                if (otherFormation && otherFormation.type === targetFormation.type) {
-                    state.activeFormations[otherId] = false;
+        // 类型处理
+        if (targetFormation.type === 'gathering') {
+            for (const otherId in state.activeFormations) {
+                if (state.activeFormations[otherId]) {
+                    const otherFormation = formationConfig[otherId];
+                    if (otherFormation && otherFormation.type === 'gathering') {
+                        state.activeFormations[otherId] = false;
+                    }
+                }
+            }
+        } else if (targetFormation.type === 'combat') {
+            const activeCount = getActiveCombatFormationCount();
+            const limit = state.maxCombatFormations && state.maxCombatFormations > 0
+                ? state.maxCombatFormations
+                : Infinity;
+            if (activeCount >= limit) {
+                const limitText = state.maxCombatFormations > 0 ? state.maxCombatFormations : '∞';
+                showNotification(`战斗阵法已达上阵上限 (${activeCount}/${limitText})`);
+                return;
+            }
+        } else {
+            for (const otherId in state.activeFormations) {
+                if (state.activeFormations[otherId] && otherId !== String(id)) {
+                    const otherFormation = formationConfig[otherId];
+                    if (otherFormation && otherFormation.type === targetFormation.type) {
+                        state.activeFormations[otherId] = false;
+                    }
                 }
             }
         }

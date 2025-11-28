@@ -25,6 +25,40 @@
                 <div id="active-buff-bar" style="display: flex; gap: 10px;"></div>
             </div>
 
+            <!-- Player Health Panel -->
+            <div id="player-health-panel" class="hidden">
+                <div class="player-health-header">
+                    <span>生命值</span>
+                    <span id="player-health-text">0 / 0</span>
+                </div>
+                <div class="player-health-bar-bg">
+                    <div id="player-health-bar"></div>
+                </div>
+            </div>
+
+            <!-- Battle Stats Toggle -->
+            <button id="battle-stats-btn" class="hidden battle-stats-btn">角色详情 (Tab)</button>
+            <div id="battle-stats-panel" class="hidden">
+                <div class="battle-stats-header">
+                    <h3>角色属性</h3>
+                    <span>按 Tab 关闭</span>
+                </div>
+                <div class="battle-stats-list">
+                    <div class="battle-stat-row"><span>攻击</span><span id="battle-stat-strength">0</span></div>
+                    <div class="battle-stat-row"><span>防御</span><span id="battle-stat-defense">0</span></div>
+                    <div class="battle-stat-row"><span>体魄</span><span id="battle-stat-physique">0</span></div>
+                    <div class="battle-stat-row"><span>敏捷</span><span id="battle-stat-agility">0</span></div>
+                    <div class="battle-stat-row"><span>悟性</span><span id="battle-stat-comprehension">0</span></div>
+                    <div class="battle-stat-row"><span>最大生命</span><span id="battle-stat-maxhp">0</span></div>
+                    <div class="battle-stat-row"><span>生命回复</span><span id="battle-stat-hpregen">0/秒</span></div>
+                    <div class="battle-stat-row"><span>移速</span><span id="battle-stat-speed">0</span></div>
+                    <div class="battle-stat-row"><span>暴击率</span><span id="battle-stat-critChance">0%</span></div>
+                    <div class="battle-stat-row"><span>暴击伤害</span><span id="battle-stat-critDamage">200%</span></div>
+                    <div class="battle-stat-row"><span>灵魂增幅</span><span id="battle-stat-soulAmp">0%</span></div>
+                    <div class="battle-stat-row"><span>灵力</span><span id="battle-stat-spiritualPower">0</span></div>
+                </div>
+            </div>
+
             <div id="start-screen" class="screen">
                 <div class="lobby-container">
                     <div class="lobby-left">
@@ -124,7 +158,7 @@
                                 </div>
                                 <div id="active-formation-wrapper" class="stat-card formation-card hidden">
                                     <div class="formation-card-header">
-                                        <p class="formation-card-title">已启用战斗阵法</p>
+                                        <p class="formation-card-title" id="active-formation-title">已启用战斗阵法</p>
                                         <p class="formation-card-subtitle">阵法效果叠加在此查看</p>
                                     </div>
                                     <div id="active-formation-list" class="formation-badge-list"></div>

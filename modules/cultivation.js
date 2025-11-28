@@ -17,9 +17,11 @@ export function calculateOfflineProgress() {
     
     if (lastSave > 0 && now > lastSave) {
         const offlineSeconds = (now - lastSave) / 1000;
+        const maxOfflineSeconds = 8 * 3600; // 最长离线收益8小时
+        const effectiveOfflineSeconds = Math.min(offlineSeconds, maxOfflineSeconds);
         
         // 至少离线 10 秒才计算
-        if (offlineSeconds > 10) {
+        if (effectiveOfflineSeconds > 10) {
             const stats = getPlayerStats();
             const baseRate = 0; 
             let gainPerSecond = baseRate + (stats.comprehension * 0.1);
@@ -37,10 +39,10 @@ export function calculateOfflineProgress() {
                 // 计算灵石能支撑多久
                 const maxDuration = state.totalSpiritStones / costPerSecond;
                 
-                if (maxDuration >= offlineSeconds) {
+                if (maxDuration >= effectiveOfflineSeconds) {
                     // 灵石足够支撑全程
-                    totalGain = (gainPerSecond * multiplier) * offlineSeconds;
-                    stonesConsumed = costPerSecond * offlineSeconds;
+                    totalGain = (gainPerSecond * multiplier) * effectiveOfflineSeconds;
+                    stonesConsumed = costPerSecond * effectiveOfflineSeconds;
                 } else {
                     // 灵石不够支撑全程
                     // 前段享受加成
@@ -48,7 +50,7 @@ export function calculateOfflineProgress() {
                     stonesConsumed = state.totalSpiritStones; // 消耗所有灵石
                     
                     // 后段无加成
-                    const remainingTime = offlineSeconds - maxDuration;
+                    const remainingTime = effectiveOfflineSeconds - maxDuration;
                     totalGain += gainPerSecond * remainingTime;
                     
                     // 关闭阵法
@@ -56,7 +58,7 @@ export function calculateOfflineProgress() {
                     localStorage.setItem('activeFormations', JSON.stringify(state.activeFormations));
                 }
             } else {
-                totalGain = gainPerSecond * offlineSeconds;
+                totalGain = gainPerSecond * effectiveOfflineSeconds;
             }
             
             state.totalReiki += totalGain;
@@ -67,7 +69,7 @@ export function calculateOfflineProgress() {
             localStorage.setItem('totalReiki', state.totalReiki);
             localStorage.setItem('totalSpiritStones', state.totalSpiritStones);
             
-            showOfflineRewardPopup(offlineSeconds, totalGain);
+            showOfflineRewardPopup(effectiveOfflineSeconds, totalGain);
         }
     }
     

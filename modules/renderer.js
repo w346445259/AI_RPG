@@ -246,13 +246,6 @@ export function draw(timestamp) {
         // 绘制武器
         drawWeapon();
 
-        // 绘制玩家生命值
-        ctx.fillStyle = 'white';
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        ctx.fillText(`生命: ${Math.ceil(state.player.hp)}/${state.player.maxHp}`, state.player.x, state.player.y - state.player.radius - 5);
-
         // Layer 5: Floating Texts (Highest Priority in World Space)
         for (const ft of state.floatingTexts) {
             ctx.globalAlpha = Math.max(0, ft.life);

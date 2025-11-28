@@ -28,9 +28,14 @@ export function showNotification(message) {
     // 3秒后移除
     setTimeout(() => {
         toast.classList.remove('show');
-        toast.addEventListener('transitionend', () => {
-            toast.remove();
-        });
+        const removeToast = () => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        };
+        toast.addEventListener('transitionend', removeToast, { once: true });
+        // 兜底处理，防止 transitionend 未触发
+        setTimeout(removeToast, 500);
     }, 3000);
 }
 

@@ -49,6 +49,7 @@ export const state = {
     equippedWeaponId: 4,
     activeFormations: {}, // { formationId: boolean }
     activeBuffs: [], // { id, duration, maxDuration }
+    maxCombatFormations: 2, // 战斗阵法上阵上限
     activeAffixes: [], // 战斗词缀
     pendingAffixChoices: [],
     soulCount: 0,
@@ -95,6 +96,11 @@ export function initState() {
     state.inventory = JSON.parse(localStorage.getItem('inventory')) || {};
     state.ownedWeapons = JSON.parse(localStorage.getItem('ownedWeapons')) || [4];
     state.activeFormations = JSON.parse(localStorage.getItem('activeFormations')) || {};
+    const storedMaxCombat = parseInt(localStorage.getItem('maxCombatFormations'));
+    state.maxCombatFormations = Number.isFinite(storedMaxCombat) ? storedMaxCombat : 2;
+    if (!Number.isFinite(storedMaxCombat)) {
+        localStorage.setItem('maxCombatFormations', state.maxCombatFormations);
+    }
     state.maxUnlockedLevel = parseInt(localStorage.getItem('maxUnlockedLevel')) || 1;
     state.lastSaveTime = parseInt(localStorage.getItem('lastSaveTime')) || Date.now();
     state.pendingBattleBuffs = {};

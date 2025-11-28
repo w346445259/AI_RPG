@@ -22,6 +22,7 @@ const levelList = document.getElementById('level-list');
 const formationBtn = document.getElementById('formation-btn');
 const activeFormationWrapper = document.getElementById('active-formation-wrapper');
 const activeFormationList = document.getElementById('active-formation-list');
+const activeFormationTitle = document.getElementById('active-formation-title');
 
 let currentLevelTab = 'body-refining';
 
@@ -266,6 +267,12 @@ function updateActiveFormationDisplay() {
                 activeCombatFormations.push(formation);
             }
         });
+    }
+
+    const limitValue = state.maxCombatFormations || 0;
+    const limitText = limitValue > 0 ? limitValue : '∞';
+    if (activeFormationTitle) {
+        activeFormationTitle.textContent = `已启用战斗阵法 (${activeCombatFormations.length}/${limitText})`;
     }
 
     activeFormationList.innerHTML = '';
