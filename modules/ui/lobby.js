@@ -20,6 +20,8 @@ const meditationBonusDisplay = document.getElementById('meditation-bonus');
 const nextLevelExpDisplay = document.getElementById('next-level-exp-display');
 const levelList = document.getElementById('level-list');
 const formationBtn = document.getElementById('formation-btn');
+const activeFormationWrapper = document.getElementById('active-formation-wrapper');
+const activeFormationList = document.getElementById('active-formation-list');
 
 let currentLevelTab = 'body-refining';
 
@@ -167,18 +169,32 @@ export function updatePlayerStatsDisplay() {
     const defenseEl = document.getElementById('stat-defense');
     const spiritualPowerEl = document.getElementById('stat-spiritualPower');
     const speedEl = document.getElementById('stat-speed');
+    const critChanceEl = document.getElementById('stat-critChance');
+    const critDamageEl = document.getElementById('stat-critDamage');
+    const soulAmpEl = document.getElementById('stat-soulAmp');
 
-    if (hpEl) hpEl.textContent = `${Math.floor(state.player.hp)} / ${stats.maxHp} (+${stats.hpRegen.toFixed(1)}/s)`;
+    if (hpEl) {
+        let currentHp = Math.floor(state.player.hp || stats.maxHp);
+        if (state.gameState !== 'PLAYING') {
+            currentHp = stats.maxHp;
+        }
+        currentHp = Math.min(currentHp, stats.maxHp);
+        hpEl.textContent = `${currentHp} / ${stats.maxHp} (+${stats.hpRegen.toFixed(1)}/s)`;
+    }
     if (physiqueEl) physiqueEl.textContent = stats.physique;
     if (strengthEl) strengthEl.textContent = stats.strength;
     if (agilityEl) agilityEl.textContent = stats.agility;
     if (comprehensionEl) comprehensionEl.textContent = stats.comprehension;
     if (defenseEl) defenseEl.textContent = stats.defense;
-    if (spiritualPowerEl) spiritualPowerEl.textContent = stats.spiritualPower;
-    if (speedEl) speedEl.textContent = playerConfig.speed;
+        if (spiritualPowerEl) spiritualPowerEl.textContent = stats.spiritualPower;
+        if (speedEl) speedEl.textContent = stats.speed;
+        if (critChanceEl) critChanceEl.textContent = `${(stats.critChance * 100).toFixed(1)}%`;
+        if (critDamageEl) critDamageEl.textContent = `${(stats.critDamage * 100).toFixed(0)}%`;
+        if (soulAmpEl) soulAmpEl.textContent = `${(stats.soulAmplification * 100).toFixed(1)}%`;
 
     // 如果有灵力属性显示需求，可以在这里添加，但目前 HTML 结构里没有预留灵力属性的行
     // 暂时只在顶部栏显示灵力
+        updateActiveFormationDisplay();
 
 }
 
@@ -238,6 +254,54 @@ export function updateLevelSelectionUI() {
     });
 }
 
+function updateActiveFormationDisplay() {
+    if (!activeFormationWrapper || !activeFormationList) return;
+
+    const activeCombatFormations = [];
+    if (state.activeFormations) {
+        Object.keys(state.activeFormations).forEach(id => {
+            if (!state.activeFormations[id]) return;
+            const formation = formationConfig[id];
+            if (formation && formation.type === 'combat') {
+                activeCombatFormations.push(formation);
+            }
+        });
+    }
+
+    activeFormationList.innerHTML = '';
+
+    if (activeCombatFormations.length === 0) {
+        activeFormationWrapper.classList.add('hidden');
+        return;
+    }
+
+    activeFormationWrapper.classList.remove('hidden');
+
+    activeCombatFormations.forEach(formation => {
+        const btn = document.createElement('button');
+        btn.textContent = formation.name;
+        btn.style.backgroundColor = '#3F51B5';
+        btn.style.border = '1px solid rgba(255,255,255,0.2)';
+        btn.style.borderRadius = '4px';
+        btn.style.color = '#fff';
+        btn.style.padding = '4px 10px';
+        btn.style.fontSize = '14px';
+        btn.style.cursor = 'pointer';
+        btn.addEventListener('click', () => {
+            if (window.openCombatFormationScreen) {
+                window.openCombatFormationScreen();
+            } else if (window.openFormationScreen) {
+                window.openFormationScreen('combat');
+            } else {
+                const formationBtn = document.getElementById('formation-btn');
+                if (formationBtn) formationBtn.click();
+                if (window.switchFormationTab) window.switchFormationTab('combat');
+            }
+        });
+        activeFormationList.appendChild(btn);
+    });
+}
+
 export function setupStatInteractions() {
     const statRows = document.querySelectorAll('.stat-row');
     statRows.forEach(row => {
@@ -276,6 +340,15 @@ function showStatDetails(stat) {
             break;
         case 'speed':
             msg = `【速度】: ${playerConfig.speed}。移动速度。`;
+            break;
+        case 'critChance':
+            msg = `【暴击率】: ${(stats.critChance * 100).toFixed(1)}%。越高越容易打出暴击。`;
+            break;
+        case 'critDamage':
+            msg = `【暴击伤害】: ${(stats.critDamage * 100).toFixed(0)}%。暴击时造成该倍率的伤害。`;
+            break;
+        case 'soulAmp':
+            msg = `【灵魂增幅】: ${(stats.soulAmplification * 100).toFixed(1)}%。直接按百分比提升每次击杀获得的灵魂数量。`;
             break;
     }
     showNotification(msg);

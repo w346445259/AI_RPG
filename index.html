@@ -18,8 +18,11 @@
             <button id="pause-btn" class="hidden" style="position: absolute; top: 20px; right: 20px; z-index: 20;">暂停</button>
 
             <!-- Buff Bar -->
-            <div id="buff-bar" class="hidden" style="position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 20;">
-                <!-- Buff Icons will be injected here -->
+            <div id="buff-bar" class="hidden" style="position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 20; display: flex; flex-direction: column; gap: 10px; align-items: center;">
+                <!-- Formations -->
+                <div id="formation-bar" style="display: flex; gap: 10px;"></div>
+                <!-- Buffs -->
+                <div id="active-buff-bar" style="display: flex; gap: 10px;"></div>
             </div>
 
             <div id="start-screen" class="screen">
@@ -71,6 +74,13 @@
                             <p class="stat-row" data-stat="defense" style="cursor: pointer;" title="点击查看详情">防御: <span id="stat-defense">0</span> ℹ️</p>
                             <p class="stat-row" data-stat="spiritualPower" style="cursor: pointer;" title="点击查看详情">灵力: <span id="stat-spiritualPower">0</span> ℹ️</p>
                             <p class="stat-row" data-stat="speed" style="cursor: pointer;" title="点击查看详情">速度: <span id="stat-speed">0</span> ℹ️</p>
+                            <p class="stat-row" data-stat="critChance" style="cursor: pointer;" title="点击查看详情">暴击率: <span id="stat-critChance">0%</span> ℹ️</p>
+                            <p class="stat-row" data-stat="critDamage" style="cursor: pointer;" title="点击查看详情">暴击伤害: <span id="stat-critDamage">200%</span> ℹ️</p>
+                            <p class="stat-row" data-stat="soulAmp" style="cursor: pointer;" title="点击查看详情">灵魂增幅: <span id="stat-soulAmp">0%</span> ℹ️</p>
+                        </div>
+                        <div id="active-formation-wrapper" class="hidden" style="margin: 15px 20px 0 20px; padding: 10px; border: 1px solid rgba(135,206,235,0.5); border-radius: 8px; background: rgba(0,0,0,0.4); text-align: left;">
+                            <p style="margin: 0 0 8px 0; color: #87CEEB; font-weight: bold;">已启用战斗阵法</p>
+                            <div id="active-formation-list" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
                         </div>
                     </div>
                 </div>
@@ -102,6 +112,15 @@
                 <div style="display: flex; gap: 15px; justify-content: flex-end;">
                     <button id="overlay-lobby-btn" style="padding: 12px 24px; font-size: 18px; background-color: #607D8B;">返回大厅</button>
                     <button id="overlay-next-level-btn" style="padding: 12px 24px; font-size: 18px; background-color: #4CAF50;">下一关</button>
+                </div>
+            </div>
+
+            <div id="affix-selection-overlay" class="hidden">
+                <div class="affix-modal">
+                    <h2 style="margin-top: 0; font-size: 32px; color: #FFB74D;">灵纹觉醒</h2>
+                    <p style="color: #ccc; margin-bottom: 20px;">击杀达到阶段后，可从以下词缀中任选一项加持。</p>
+                    <div id="affix-choice-list" class="affix-choice-grid"></div>
+                    <button id="affix-skip-btn" style="background-color: #607D8B; margin-top: 10px;">暂时跳过</button>
                 </div>
             </div>
 
@@ -265,9 +284,9 @@
                         <button id="debug-unlock-levels-btn" style="background-color: #9C27B0; margin-top: 10px;">解锁所有关卡</button>
 
                         <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
-                            <button onclick="window.applyBuff(1, 10)" style="background-color: #E91E63;">Buff: 攻击 (+20%)</button>
-                            <button onclick="window.applyBuff(2, 10)" style="background-color: #3F51B5;">Buff: 防御 (+10)</button>
-                            <button onclick="window.applyBuff(3, 10)" style="background-color: #009688;">Buff: 移速 (+30%)</button>
+                            <button onclick="window.queueBattleBuff(1, 10)" style="background-color: #E91E63;">Buff: 攻击 (+20%)</button>
+                            <button onclick="window.queueBattleBuff(2, 10)" style="background-color: #3F51B5;">Buff: 防御 (+10)</button>
+                            <button onclick="window.queueBattleBuff(3, 10)" style="background-color: #009688;">Buff: 移速 (+30%)</button>
                         </div>
 
                         <button id="clear-data-btn" style="background-color: #f44336; margin-top: 20px;">清除所有存档</button>

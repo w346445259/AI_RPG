@@ -15,9 +15,7 @@ export const formationConfig = {
         description: "增强攻击力。",
         costPerSecond: 0,
         costPerBattle: 5, // 每次战斗消耗5灵石
-        stat: "strength",
-        value: 0.15, // +15% 攻击
-        valueType: "multiplier",
+        buffIds: [4],
         icon: "杀"
     },
     3: {
@@ -27,9 +25,7 @@ export const formationConfig = {
         description: "增强防御力。",
         costPerSecond: 0,
         costPerBattle: 5,
-        stat: "defense",
-        value: 15, // +15 防御
-        valueType: "flat",
+        buffIds: [5],
         icon: "护"
     },
     4: {
@@ -39,9 +35,7 @@ export const formationConfig = {
         description: "提升移动速度。",
         costPerSecond: 0,
         costPerBattle: 5,
-        stat: "speed",
-        value: 0.2, // +20% 移速
-        valueType: "multiplier",
+        buffIds: [6],
         icon: "风"
     },
     5: {
@@ -51,9 +45,37 @@ export const formationConfig = {
         description: "持续恢复生命值。",
         costPerSecond: 0,
         costPerBattle: 5,
-        stat: "hpRegen",
-        value: 10, // +10 HP/s
-        valueType: "flat",
+        buffIds: [7],
         icon: "回"
+    },
+    6: {
+        id: 6,
+        name: "破空阵",
+        type: "combat",
+        description: "聚焦弱点，提升暴击率。",
+        costPerSecond: 0,
+        costPerBattle: 8,
+        buffIds: [8],
+        icon: "爆"
+    },
+    7: {
+        id: 7,
+        name: "灭世阵",
+        type: "combat",
+        description: "爆发极限，提升暴击伤害。",
+        costPerSecond: 0,
+        costPerBattle: 8,
+        buffIds: [9],
+        icon: "烈"
+    },
+    8: {
+        id: 8,
+        name: "摄魂阵",
+        type: "combat",
+        description: "引导魂力，提升灵魂增幅。",
+        costPerSecond: 0,
+        costPerBattle: 8,
+        buffIds: [10],
+        icon: "魂"
     }
 };

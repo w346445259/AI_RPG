@@ -3,6 +3,7 @@ import { playerConfig } from '../config/playerConfig.js';
 import { bodyRefiningConfig, realmBaseConfig, qiCondensationConfig, bodyStrengtheningConfig } from '../config/cultivationConfig.js';
 import { buffConfig } from '../config/buffConfig.js';
 import { formationConfig } from '../config/formationConfig.js';
+import { affixConfig } from '../config/affixConfig.js';
 
 export function getPlayerStats() {
     let bonusStrength = 0;
@@ -11,6 +12,9 @@ export function getPlayerStats() {
     let bonusPhysique = 0;
     let bonusDefense = 0;
     let bonusSpiritualPower = 0;
+    let bonusCritChance = 0;
+    let bonusCritDamage = 0;
+    let bonusSoulAmp = 0;
 
     // 境界基础加成 (Realm Base Stats)
     for (const stageStr in realmBaseConfig) {
@@ -72,27 +76,40 @@ export function getPlayerStats() {
     let finalComprehension = playerConfig.comprehension + bonusComprehension;
     let finalDefense = playerConfig.defense + bonusDefense;
     let finalSpiritualPower = bonusSpiritualPower;
-    let finalSpeed = playerConfig.speed; // Base speed is usually handled in playerConfig but let's expose it here
+    let finalSpeed = playerConfig.speed;
+    let finalCritChance = (playerConfig.critChance || 0) + bonusCritChance;
+    let finalCritDamage = (playerConfig.critDamage || 2.0) + bonusCritDamage;
+    let finalSoulAmp = (playerConfig.soulAmplification || 0) + bonusSoulAmp;
+
+    // Helper to apply buff stats
+    const applyBuffStats = (config) => {
+        const value = config.value;
+        if (config.type === 'stat_flat') {
+            if (config.stat === 'strength') finalStrength += value;
+            if (config.stat === 'defense') finalDefense += value;
+            if (config.stat === 'agility') finalAgility += value;
+            if (config.stat === 'speed') finalSpeed += value;
+            if (config.stat === 'hpRegen') hpRegen += value;
+            if (config.stat === 'critChance') finalCritChance += value;
+            if (config.stat === 'critDamage') finalCritDamage += value;
+            if (config.stat === 'soulAmp') finalSoulAmp += value;
+        } else if (config.type === 'stat_multiplier') {
+            if (config.stat === 'strength') finalStrength *= (1 + value);
+            if (config.stat === 'defense') finalDefense *= (1 + value);
+            if (config.stat === 'agility') finalAgility *= (1 + value);
+            if (config.stat === 'speed') finalSpeed *= (1 + value);
+            if (config.stat === 'hpRegen') hpRegen *= (1 + value);
+            if (config.stat === 'critChance') finalCritChance *= (1 + value);
+            if (config.stat === 'critDamage') finalCritDamage *= (1 + value);
+            if (config.stat === 'soulAmp') finalSoulAmp *= (1 + value);
+        }
+    };
 
     // Apply Buffs
     if (state.activeBuffs) {
         state.activeBuffs.forEach(buff => {
             const config = buffConfig[buff.id];
-            if (!config) return;
-            
-            const value = config.value;
-            
-            if (config.type === 'stat_flat') {
-                if (config.stat === 'strength') finalStrength += value;
-                if (config.stat === 'defense') finalDefense += value;
-                if (config.stat === 'agility') finalAgility += value;
-                if (config.stat === 'speed') finalSpeed += value;
-            } else if (config.type === 'stat_multiplier') {
-                if (config.stat === 'strength') finalStrength *= (1 + value);
-                if (config.stat === 'defense') finalDefense *= (1 + value);
-                if (config.stat === 'agility') finalAgility *= (1 + value);
-                if (config.stat === 'speed') finalSpeed *= (1 + value);
-            }
+            if (config) applyBuffStats(config);
         });
     }
 
@@ -102,24 +119,27 @@ export function getPlayerStats() {
             if (state.activeFormations[id]) {
                 const config = formationConfig[id];
                 if (config && config.type === 'combat') {
-                    const value = config.value;
-                    if (config.valueType === 'flat') {
-                        if (config.stat === 'strength') finalStrength += value;
-                        if (config.stat === 'defense') finalDefense += value;
-                        if (config.stat === 'agility') finalAgility += value;
-                        if (config.stat === 'speed') finalSpeed += value;
-                        if (config.stat === 'hpRegen') hpRegen += value;
-                    } else if (config.valueType === 'multiplier') {
-                        if (config.stat === 'strength') finalStrength *= (1 + value);
-                        if (config.stat === 'defense') finalDefense *= (1 + value);
-                        if (config.stat === 'agility') finalAgility *= (1 + value);
-                        if (config.stat === 'speed') finalSpeed *= (1 + value);
-                        if (config.stat === 'hpRegen') hpRegen *= (1 + value);
+                    // Handle buffIds
+                    if (config.buffIds && Array.isArray(config.buffIds)) {
+                        config.buffIds.forEach(buffId => {
+                            const bConfig = buffConfig[buffId];
+                            if (bConfig) applyBuffStats(bConfig);
+                        });
                     }
                 }
             }
         }
     }
+
+    if (state.activeAffixes && state.activeAffixes.length > 0) {
+        state.activeAffixes.forEach(affixId => {
+            const config = affixConfig[affixId];
+            if (config) applyBuffStats(config);
+        });
+    }
+
+    const normalizedCritChance = Math.min(1, Math.max(0, finalCritChance));
+    const normalizedCritDamage = Math.max(1, finalCritDamage);
 
     return {
         strength: Math.floor(finalStrength),
@@ -130,6 +150,9 @@ export function getPlayerStats() {
         spiritualPower: Math.floor(finalSpiritualPower),
         maxHp: Math.floor(maxHp),
         hpRegen: hpRegen,
-        speed: Math.floor(finalSpeed) // Return calculated speed
+        speed: Math.floor(finalSpeed),
+        critChance: normalizedCritChance,
+        critDamage: normalizedCritDamage,
+        soulAmplification: Math.max(0, finalSoulAmp)
     };
 }

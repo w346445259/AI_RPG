@@ -1,9 +1,38 @@
 import { state } from './state.js';
-import { weaponConfig } from '../config/weaponConfig.js';
 import { playerConfig } from '../config/playerConfig.js';
 import { getNearestMonster } from './utils.js';
 import { getPlayerStats } from './ui.js';
 import { handleMonsterDeath } from './monster.js';
+import { getActiveWeaponConfig } from './weaponUtils.js';
+
+function rollCriticalDamage(baseDamage, stats) {
+    let damage = Math.floor(baseDamage);
+    let isCrit = false;
+    const critChance = stats.critChance || 0;
+    const critDamage = stats.critDamage || 2;
+    if (Math.random() < critChance) {
+        isCrit = true;
+        damage = Math.floor(damage * critDamage);
+    }
+    return { damage, isCrit };
+}
+
+function pushDamageFloatingText(target, damage, isCrit) {
+    state.floatingTexts.push({
+        x: target.x,
+        y: target.y - 20,
+        text: isCrit ? `暴击 -${damage}` : `-${damage}`,
+        life: isCrit ? 0.8 : 0.5,
+        color: isCrit ? '#FFD700' : '#fff',
+        strokeStyle: isCrit ? '#FF4500' : 'black',
+        lineWidth: isCrit ? 4 : 3,
+        fontSize: isCrit ? 30 : 24,
+        riseSpeed: isCrit ? 90 : 60,
+        shadowColor: isCrit ? '#FFA500' : undefined,
+        shadowBlur: isCrit ? 25 : undefined,
+        isCrit
+    });
+}
 
 export function updatePlayerMovement(dt) {
     const moveDist = state.player.speed * dt;
@@ -17,22 +46,20 @@ export function updatePlayerMovement(dt) {
 }
 
 export function updateShooting(timestamp) {
-    let weapon = weaponConfig[state.equippedWeaponId];
+    let weapon = getActiveWeaponConfig();
 
     if (!weapon) {
         console.warn(`Equipped weapon ID ${state.equippedWeaponId} not found. Resetting.`);
         state.equippedWeaponId = 4;
         localStorage.setItem('equippedWeaponId', 4);
-        weapon = weaponConfig[4];
+        weapon = getActiveWeaponConfig();
         if (!weapon) return;
     }
 
     if (weapon.type === 'melee-sweep' || weapon.type === 'melee-thrust' || weapon.type === 'melee-smash') {
         const stats = getPlayerStats();
-        // Agility affects attack speed (Non-linear formula)
-        // Multiplier = 1 + (MaxBonus * Agility) / (Agility + HalfwayPoint)
-        // MaxBonus = 4 (Max 5x speed), HalfwayPoint = 500 (Slower curve)
-        const agilityMultiplier = 1 + (4 * stats.agility) / (stats.agility + 500);
+        // 敏捷对攻速的收益放缓，需更高敏捷才能逼近 5 倍攻速
+        const agilityMultiplier = 1 + (4 * stats.agility) / (stats.agility + 2000);
         const actualFireRate = weapon.fireRate / agilityMultiplier;
 
         if (timestamp - state.lastShotTime > actualFireRate) {
@@ -125,18 +152,13 @@ export function updateShooting(timestamp) {
                     }
 
                     const stats = getPlayerStats();
-                    const damage = Math.floor(stats.strength * weapon.damageMultiplier);
+                    const baseDamage = stats.strength * weapon.damageMultiplier;
 
                     targetsToHit.forEach(t => {
+                        const { damage, isCrit } = rollCriticalDamage(baseDamage, stats);
                         const actualDamage = Math.max(1, damage - (t.defense || 0));
                         t.hp -= actualDamage;
-                        state.floatingTexts.push({
-                            x: t.x,
-                            y: t.y - 20,
-                            text: `-${actualDamage}`,
-                            life: 0.5,
-                            color: '#fff'
-                        });
+                        pushDamageFloatingText(t, actualDamage, isCrit);
 
                         if (t.hp <= 0) handleMonsterDeath(t);
                     });
@@ -147,8 +169,8 @@ export function updateShooting(timestamp) {
     }
 
     const stats = getPlayerStats();
-    // Agility affects attack speed (Non-linear formula)
-    const agilityMultiplier = 1 + (4 * stats.agility) / (stats.agility + 500);
+    // 敏捷对攻速的收益放缓，需更高敏捷才能逼近 5 倍攻速
+    const agilityMultiplier = 1 + (4 * stats.agility) / (stats.agility + 2000);
     const actualFireRate = weapon.fireRate / agilityMultiplier;
 
     if (timestamp - state.lastShotTime > actualFireRate) {
@@ -170,7 +192,7 @@ export function updateShooting(timestamp) {
             }
 
             if (target) {
-                shootTarget(target);
+                shootTarget(target, weapon);
                 state.burstShotsRemaining--;
                 state.lastBurstTime = timestamp;
             } else {
@@ -180,29 +202,27 @@ export function updateShooting(timestamp) {
     }
 }
 
-function shootTarget(target) {
+function shootTarget(target, weapon) {
     if (!target) return;
     const stats = getPlayerStats();
-    const weapon = weaponConfig[state.equippedWeaponId];
-    const finalDamage = stats.strength * weapon.damageMultiplier;
+    const baseDamage = stats.strength * weapon.damageMultiplier;
 
     if (weapon.type === 'bounce') {
         state.bullets.push({
             type: 'bounce',
             x: state.player.x,
             y: state.player.y,
-            speed: (weapon.speed || 12) * 60, // Convert old frame speed to px/s if needed, or assume config is updated. Let's assume config needs update or we scale here. 
-            // Wait, weaponConfig wasn't fully updated for speed. 
-            // If I change logic to expect px/s, I should ensure weapon.speed is px/s.
-            // Default 12 * 60 = 720.
+            speed: (weapon.speed || 12) * 60, // 兼容旧版帧速配置，未设置时按12*60像素/秒处理
             targetId: target.id,
             targetX: target.x,
             targetY: target.y,
-            damage: finalDamage,
+            damage: baseDamage,
             bounceCount: weapon.bounceCount,
             hitIds: [],
             radius: 5,
-            color: 'cyan'
+            color: 'cyan',
+            critChance: stats.critChance,
+            critDamage: stats.critDamage
         });
     } else {
         const dx = target.x - state.player.x;
@@ -228,8 +248,10 @@ function shootTarget(target) {
                 radius: 5,
                 color: 'yellow',
                 penetration: weapon.penetration,
-                damage: finalDamage,
-                hitIds: []
+                damage: baseDamage,
+                hitIds: [],
+                critChance: stats.critChance,
+                critDamage: stats.critDamage
             });
         }
     }

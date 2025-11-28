@@ -4,13 +4,13 @@ export const bodyRefiningConfig = {
     tiers: {
         1: { strength: 5, agility: 2, physique: 5 },
         2: { strength: 10, agility: 4, physique: 10 },
-        3: { strength: 15, agility: 6, physique: 15 },
-        4: { strength: 25, agility: 10, physique: 25 }, // 中期小爆发
-        5: { strength: 35, agility: 14, physique: 35 },
-        6: { strength: 45, agility: 18, physique: 45 },
-        7: { strength: 60, agility: 25, physique: 60 }, // 后期大爆发
-        8: { strength: 75, agility: 32, physique: 75 },
-        9: { strength: 100, agility: 40, physique: 100 }
+        3: { strength: 20, agility: 8, physique: 20 },
+        4: { strength: 40, agility: 16, physique: 40 },
+        5: { strength: 80, agility: 32, physique: 80 },
+        6: { strength: 160, agility: 64, physique: 160 },
+        7: { strength: 320, agility: 128, physique: 320 },
+        8: { strength: 640, agility: 256, physique: 640 },
+        9: { strength: 1280, agility: 512, physique: 1280 }
     },
     // 计算提升到下一阶（targetTier）所需的气血
     // 曲线更平滑但呈指数增长: 100, 150, 225, 337...

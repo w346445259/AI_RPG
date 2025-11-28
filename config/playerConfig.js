@@ -10,6 +10,9 @@ export const playerConfig = {
     agility: 10,     // 基础敏捷 (影响移速/闪避 - 暂未完全实装)
     comprehension: 10, // 基础悟性 (影响气血获取 - 暂未完全实装)
     defense: 5,      // 基础防御 (直接减伤)
+    critChance: 0,   // 基础暴击率 (0% => 0)
+    critDamage: 2.0, // 基础暴击伤害倍率 (200%)
+    soulAmplification: 0, // 灵魂增幅 (额外灵魂获取百分比)
     
     initialReiki: 0  // 初始灵气归零，从头开始
 };

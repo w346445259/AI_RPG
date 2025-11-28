@@ -3,6 +3,35 @@ import { handleMonsterDeath } from './monster.js';
 import { handleGameOver } from './gameLogic.js';
 import { getNearestMonsterExcluding } from './utils.js';
 
+function calculateBulletDamage(bullet) {
+    const critChance = bullet.critChance || 0;
+    const critDamage = bullet.critDamage || 2;
+    let damage = bullet.damage;
+    let isCrit = false;
+    if (!bullet.isEnemy && Math.random() < critChance) {
+        isCrit = true;
+        damage *= critDamage;
+    }
+    return { damage: Math.floor(damage), isCrit };
+}
+
+function pushPlayerDamageText(monster, damage, isCrit) {
+    state.floatingTexts.push({
+        x: monster.x,
+        y: monster.y - 10,
+        text: isCrit ? `暴击 -${damage}` : `-${damage}`,
+        life: isCrit ? 0.8 : 0.5,
+        color: isCrit ? '#FFD700' : 'white',
+        strokeStyle: isCrit ? '#FF4500' : 'black',
+        lineWidth: isCrit ? 4 : 3,
+        fontSize: isCrit ? 30 : 24,
+        riseSpeed: isCrit ? 90 : 60,
+        shadowColor: isCrit ? '#FFA500' : undefined,
+        shadowBlur: isCrit ? 25 : undefined,
+        isCrit
+    });
+}
+
 export function updateBullets(dt) {
     for (let i = state.bullets.length - 1; i >= 0; i--) {
         const b = state.bullets[i];
@@ -102,17 +131,12 @@ function updatePenetrateBullet(b, i, dt) {
 }
 
 function handleBulletHit(bullet, monster, bulletIndex) {
-    const actualDamage = Math.max(1, bullet.damage - (monster.defense || 0));
+    const { damage, isCrit } = calculateBulletDamage(bullet);
+    const actualDamage = Math.max(1, damage - (monster.defense || 0));
     monster.hp -= actualDamage;
     bullet.hitIds.push(monster.id);
 
-    state.floatingTexts.push({
-        x: monster.x,
-        y: monster.y - 10,
-        text: `-${actualDamage.toFixed(1)}`,
-        life: 0.5,
-        color: 'white'
-    });
+    pushPlayerDamageText(monster, actualDamage, isCrit);
 
     if (monster.hp <= 0) handleMonsterDeath(monster);
 }

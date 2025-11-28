@@ -2,7 +2,6 @@ import { state } from '../state.js';
 import { buffConfig } from '../../config/buffConfig.js';
 import { formationConfig } from '../../config/formationConfig.js';
 
-const buffBar = document.getElementById('buff-bar');
 const tooltip = document.getElementById('game-tooltip');
 
 function showTooltip(e, text) {
@@ -50,16 +49,25 @@ function createBuffElement(id, icon, borderColor) {
 }
 
 export function updateBuffUI() {
-    if (!buffBar) return;
+    const buffBar = document.getElementById('buff-bar');
+    const formationBar = document.getElementById('formation-bar');
+    const activeBuffBar = document.getElementById('active-buff-bar');
+
+    if (!buffBar || !formationBar || !activeBuffBar) return;
 
     if (state.gameState !== 'PLAYING') {
-        buffBar.classList.add('hidden');
+        buffBar.style.display = 'none';
+        // Clear content to ensure no stale icons persist
+        formationBar.innerHTML = '';
+        activeBuffBar.innerHTML = '';
         return;
     } else {
+        buffBar.style.display = 'flex';
         buffBar.classList.remove('hidden');
     }
 
-    const activeIds = new Set();
+    const activeFormationIds = new Set();
+    const activeBuffIds = new Set();
 
     // Render Active Formations (Combat only)
     if (state.activeFormations) {
@@ -69,12 +77,12 @@ export function updateBuffUI() {
             if (!config || config.type !== 'combat') return;
 
             const elementId = `buff-formation-${id}`;
-            activeIds.add(elementId);
+            activeFormationIds.add(elementId);
 
             let buffEl = document.getElementById(elementId);
             if (!buffEl) {
                 buffEl = createBuffElement(elementId, config.icon, '#FFD700');
-                buffBar.appendChild(buffEl);
+                formationBar.appendChild(buffEl);
                 
                 buffEl.addEventListener('mouseenter', (e) => showTooltip(e, `[阵法] ${config.name}\n${config.description}`));
                 buffEl.addEventListener('mousemove', updateTooltipPosition);
@@ -83,20 +91,21 @@ export function updateBuffUI() {
         });
     }
 
+    // Render Active Buffs
     if (state.activeBuffs) {
         state.activeBuffs.forEach(buff => {
             const config = buffConfig[buff.id];
             if (!config) return;
 
             const elementId = `buff-active-${buff.id}`;
-            activeIds.add(elementId);
+            activeBuffIds.add(elementId);
 
             let buffEl = document.getElementById(elementId);
             let progressBar;
 
             if (!buffEl) {
                 buffEl = createBuffElement(elementId, config.icon, '#fff');
-                buffBar.appendChild(buffEl);
+                activeBuffBar.appendChild(buffEl);
 
                 progressBar = document.createElement('div');
                 progressBar.className = 'buff-progress';
@@ -134,10 +143,17 @@ export function updateBuffUI() {
         });
     }
 
-    // Remove stale elements
-    Array.from(buffBar.children).forEach(child => {
-        if (!activeIds.has(child.id)) {
-            buffBar.removeChild(child);
+    // Remove stale elements from Formation Bar
+    Array.from(formationBar.children).forEach(child => {
+        if (!activeFormationIds.has(child.id)) {
+            formationBar.removeChild(child);
+        }
+    });
+
+    // Remove stale elements from Active Buff Bar
+    Array.from(activeBuffBar.children).forEach(child => {
+        if (!activeBuffIds.has(child.id)) {
+            activeBuffBar.removeChild(child);
         }
     });
 }

@@ -11,9 +11,14 @@ import { itemConfig } from '../config/itemConfig.js';
 import { getPlayerStats } from './playerStats.js';
 import { addExperience } from './cultivation.js';
 import { formationConfig } from '../config/formationConfig.js';
+import { applyQueuedBattleBuffs } from './buff.js';
+import { initAffixSystem } from './affixSystem.js';
+import { hideAffixSelection } from './ui/affix.js';
 
 export function handleVictory() {
     state.hasWon = true;
+    state.gameState = 'VICTORY';
+    hideAffixSelection();
     if (state.currentLevel === state.maxUnlockedLevel) {
         state.maxUnlockedLevel++;
         localStorage.setItem('maxUnlockedLevel', state.maxUnlockedLevel);
@@ -43,10 +48,13 @@ export function handleVictory() {
 
 export function handleGameOver() {
     state.gameState = 'GAMEOVER';
+    hideAffixSelection();
     showGameOverScreen(state.sessionSpiritStones);
 }
 
 export function initGame() {
+    const levelInfo = levelConfig[state.currentLevel] || levelConfig[1];
+
     // Check Formation Cost
     const activeFormationIds = Object.keys(state.activeFormations).filter(id => state.activeFormations[id]);
     let battleCost = 0;
@@ -100,6 +108,8 @@ export function initGame() {
     state.sessionInventory = {};
     state.hasWon = false;
     state.activeBuffs = [];
+    applyQueuedBattleBuffs();
+    initAffixSystem();
     
     spawnOres();
 

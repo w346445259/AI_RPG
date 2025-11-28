@@ -1,6 +1,9 @@
 import { state } from '../state.js';
 import { formationConfig } from '../../config/formationConfig.js';
+import { buffConfig } from '../../config/buffConfig.js';
 import { showNotification } from './common.js';
+import { updatePlayerStatsDisplay } from './lobby.js';
+import { updateBuffUI } from './buff.js';
 
 // UI Elements
 const formationList = document.getElementById('formation-list');
@@ -48,13 +51,40 @@ export function updateFormationUI() {
         if (formation.type === 'gathering') {
             effectText = `灵气获取 +${Math.round((formation.effectMultiplier - 1) * 100)}%`;
         } else if (formation.type === 'combat') {
-            const val = formation.valueType === 'multiplier' ? `+${Math.round(formation.value * 100)}%` : `+${formation.value}`;
-            let statName = formation.stat;
-            if (statName === 'strength') statName = '攻击';
-            if (statName === 'defense') statName = '防御';
-            if (statName === 'speed') statName = '移速';
-            if (statName === 'hpRegen') statName = '生命恢复';
-            effectText = `${statName} ${val}`;
+            if (formation.buffIds) {
+                const effects = [];
+                formation.buffIds.forEach(buffId => {
+                    const buff = buffConfig[buffId];
+                    if (buff) {
+                        effects.push(buff.description);
+                    }
+                });
+                effectText = effects.join(', ');
+            } else if (formation.buffEffects) {
+                const effects = [];
+                formation.buffEffects.forEach(effect => {
+                    let statName = effect.stat;
+                    if (statName === 'strength') statName = '攻击';
+                    if (statName === 'defense') statName = '防御';
+                    if (statName === 'speed') statName = '移速';
+                    if (statName === 'hpRegen') statName = '生命恢复';
+                    
+                    const val = (effect.type === 'multiplier' || effect.type === 'stat_multiplier') 
+                        ? `+${Math.round(effect.value * 100)}%` 
+                        : `+${effect.value}`;
+                    effects.push(`${statName} ${val}`);
+                });
+                effectText = effects.join(', ');
+            } else if (formation.stat) {
+                // Fallback for legacy single stat
+                const val = formation.valueType === 'multiplier' ? `+${Math.round(formation.value * 100)}%` : `+${formation.value}`;
+                let statName = formation.stat;
+                if (statName === 'strength') statName = '攻击';
+                if (statName === 'defense') statName = '防御';
+                if (statName === 'speed') statName = '移速';
+                if (statName === 'hpRegen') statName = '生命恢复';
+                effectText = `${statName} ${val}`;
+            }
         }
 
         let costText = "";
@@ -127,6 +157,8 @@ window.toggleFormation = function(id) {
     
     localStorage.setItem('activeFormations', JSON.stringify(state.activeFormations));
     updateFormationUI();
+    updatePlayerStatsDisplay();
+    updateBuffUI();
     
     // 如果是聚灵阵，可能需要更新大厅UI
     if (id === 1) {

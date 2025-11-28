@@ -1,7 +1,8 @@
 import { state } from './state.js';
 import { buffConfig } from '../config/buffConfig.js';
 import { showNotification } from './ui/common.js';
-import { updateBuffUI } from './ui.js';
+import { updateBuffUI } from './ui/buff.js';
+import { updatePlayerStatsDisplay } from './ui/lobby.js';
 
 export function applyBuff(buffId, duration) {
     const config = buffConfig[buffId];
@@ -21,6 +22,28 @@ export function applyBuff(buffId, duration) {
     
     showNotification(`获得状态: ${config.name}`);
     updateBuffUI();
+    updatePlayerStatsDisplay();
+}
+
+export function queueBattleBuff(buffId, duration) {
+    const config = buffConfig[buffId];
+    if (!config) return;
+
+    if (!state.pendingBattleBuffs) state.pendingBattleBuffs = {};
+    state.pendingBattleBuffs[buffId] = duration;
+    showNotification(`调试: ${config.name} 将在下次战斗生效`);
+}
+
+export function applyQueuedBattleBuffs() {
+    if (!state.pendingBattleBuffs) return;
+    const entries = Object.entries(state.pendingBattleBuffs);
+    if (entries.length === 0) return;
+
+    entries.forEach(([buffId, duration]) => {
+        applyBuff(parseInt(buffId, 10), duration);
+    });
+
+    state.pendingBattleBuffs = {};
 }
 
 export function updateBuffs(dt) {

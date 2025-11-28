@@ -18,8 +18,9 @@ import {
     attemptBodyRefiningBreakthrough, attemptQiBreakthrough 
 } from './modules/cultivation.js';
 import { setupUIEvents } from './modules/uiEvents.js';
-import { updateBuffs, applyBuff } from './modules/buff.js';
+import { updateBuffs, applyBuff, queueBattleBuff } from './modules/buff.js';
 import { updateFormations } from './modules/formationLogic.js';
+import { selectAffix, skipAffixSelection } from './modules/affixSystem.js';
 
 // Initialize State
 state.canvas = document.getElementById('gameCanvas');
@@ -54,6 +55,9 @@ window.strengthenBody = strengthenBody;
 window.attemptBodyRefiningBreakthrough = attemptBodyRefiningBreakthrough;
 window.attemptQiBreakthrough = attemptQiBreakthrough;
 window.applyBuff = applyBuff;
+window.queueBattleBuff = queueBattleBuff;
+window.chooseAffixOption = selectAffix;
+window.skipAffixSelection = skipAffixSelection;
 window.smeltItem = (type) => {
     if (smeltItem(type)) {
         updateSmeltingUI();
@@ -149,8 +153,10 @@ function update(timestamp, dt) {
     // Floating texts update
     for (let i = state.floatingTexts.length - 1; i >= 0; i--) {
         const ft = state.floatingTexts[i];
-        ft.life -= dt; // Use dt for life
-        ft.y -= 60 * dt; // Speed 60 px/s (加快上浮速度)
+        const decay = ft.decay || 1;
+        const riseSpeed = ft.riseSpeed || 60;
+        ft.life -= dt * decay;
+        ft.y -= riseSpeed * dt;
         if (ft.life <= 0) state.floatingTexts.splice(i, 1);
     }
 }

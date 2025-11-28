@@ -4,10 +4,12 @@ import { monsterConfig } from '../config/monsterConfig.js';
 import { monsterWeaponConfig } from '../config/monsterWeaponConfig.js';
 import { cameraConfig } from '../config/cameraConfig.js';
 import { handleVictory, handleGameOver } from './gameLogic.js';
+import { getScaledKillRequirement } from './levelUtils.js';
+import { gainSoulFromKill } from './affixSystem.js';
 
 export function updateSpawning(timestamp) {
     const config = levelConfig[state.currentLevel] || levelConfig[1];
-    const maxMonsters = config.winKillCount || 50;
+    const maxMonsters = getScaledKillRequirement(config);
     if (state.monstersSpawned >= maxMonsters) return;
 
     if (timestamp - state.lastSpawnTime > config.spawnRate) {
@@ -285,10 +287,13 @@ export function handleMonsterDeath(monster) {
         
         state.killCount++;
 
+        gainSoulFromKill();
+
         const config = levelConfig[state.currentLevel] || levelConfig[1];
-        const winKillCount = config.winKillCount || 50;
+        const winKillCount = getScaledKillRequirement(config);
         if (!state.hasWon && state.killCount >= winKillCount) {
             handleVictory();
+            return;
         }
     }
 }

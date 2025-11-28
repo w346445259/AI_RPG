@@ -4,6 +4,7 @@ import { levelConfig } from '../config/spawnConfig.js';
 import { monsterWeaponConfig } from '../config/monsterWeaponConfig.js';
 import { cameraConfig } from '../config/cameraConfig.js';
 import { getNearestMonster } from './utils.js';
+import { getScaledKillRequirement } from './levelUtils.js';
 
 function drawWeapon() {
     const weapon = weaponConfig[state.equippedWeaponId];
@@ -50,7 +51,7 @@ export function draw(timestamp) {
     ctx.fillStyle = '#222';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    if (state.gameState === 'PLAYING' || state.gameState === 'GAMEOVER' || state.gameState === 'LOBBY' || state.gameState === 'VICTORY' || state.gameState === 'PAUSED') {
+    if (state.gameState === 'PLAYING' || state.gameState === 'GAMEOVER' || state.gameState === 'LOBBY' || state.gameState === 'VICTORY' || state.gameState === 'PAUSED' || state.gameState === 'AFFIX_SELECTION') {
         
         if (state.gameState !== 'LOBBY') {
             ctx.save();
@@ -255,18 +256,26 @@ export function draw(timestamp) {
         // Layer 5: Floating Texts (Highest Priority in World Space)
         for (const ft of state.floatingTexts) {
             ctx.globalAlpha = Math.max(0, ft.life);
-            ctx.fillStyle = ft.color;
-            ctx.font = 'bold 24px Arial'; // 增大字体
+            ctx.fillStyle = ft.color || 'white';
+            const fontSize = ft.fontSize || 24;
+            ctx.font = `bold ${fontSize}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
             
             // 添加描边，使文字更清晰
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = 3;
+            ctx.strokeStyle = ft.strokeStyle || 'black';
+            ctx.lineWidth = ft.lineWidth || 3;
+            if (ft.shadowColor) {
+                ctx.shadowColor = ft.shadowColor;
+                ctx.shadowBlur = ft.shadowBlur || 15;
+            } else {
+                ctx.shadowBlur = 0;
+            }
             ctx.strokeText(ft.text, ft.x, ft.y);
             
             ctx.fillText(ft.text, ft.x, ft.y);
             ctx.globalAlpha = 1.0;
+            ctx.shadowBlur = 0;
         }
 
         ctx.restore(); // Restore context for UI
@@ -275,7 +284,7 @@ export function draw(timestamp) {
         // Layer 6: UI Overlay (Screen Space)
         if (state.gameState !== 'LOBBY') {
             const config = levelConfig[state.currentLevel] || levelConfig[1];
-            const maxKills = config.winKillCount || 50;
+            const maxKills = getScaledKillRequirement(config);
             // 绘制击杀数
             ctx.fillStyle = 'white';
             ctx.font = '20px Arial';
@@ -286,6 +295,36 @@ export function draw(timestamp) {
             // 绘制本局灵石
             ctx.fillStyle = '#87CEEB';
             ctx.fillText(`灵石: ${state.sessionSpiritStones}`, 20, 50);
+
+            // 绘制灵魂收集进度
+            const soulCapacity = state.soulCapacity || 20;
+            const soulCount = state.soulCount || 0;
+            const soulRatio = Math.max(0, Math.min(1, soulCapacity > 0 ? (soulCount / soulCapacity) : 0));
+            const barX = 20;
+            const barY = 80;
+            const barW = 320;
+            const barH = 24;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.fillRect(barX - 8, barY - 12, barW + 70, barH + 34);
+            ctx.fillStyle = '#333';
+            ctx.fillRect(barX, barY, barW, barH);
+            ctx.fillStyle = state.soulReady ? '#FFD54F' : '#BA68C8';
+            ctx.fillRect(barX, barY, barW * soulRatio, barH);
+            ctx.strokeStyle = '#FFFDE7';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(barX, barY, barW, barH);
+
+            ctx.fillStyle = '#FFFDE7';
+            ctx.font = '18px "Microsoft YaHei"';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`灵魂 ${soulCount.toFixed(1)} / ${soulCapacity}`, barX + 10, barY + barH / 2);
+
+            if (state.soulReady && state.gameState === 'PLAYING') {
+                ctx.textBaseline = 'top';
+                ctx.fillStyle = '#FFD54F';
+                ctx.font = '18px Arial';
+                ctx.fillText('按 F 释放灵魂唤醒', barX, barY + barH + 25);
+            }
         }
     }
 }

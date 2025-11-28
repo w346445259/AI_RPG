@@ -365,3 +365,68 @@ button:hover {
     border-color: #4CAF50;
     border-left: 1px solid #4CAF50; /* Override default tab-btn style */
 }
+
+#affix-selection-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 80;
+}
+
+#affix-selection-overlay.hidden {
+    display: none !important;
+}
+
+.affix-modal {
+    background: rgba(18, 18, 18, 0.95);
+    border: 2px solid #FFB74D;
+    border-radius: 16px;
+    padding: 30px;
+    width: 70%;
+    max-width: 900px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+}
+
+.affix-choice-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin: 25px 0;
+}
+
+.affix-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 160px;
+}
+
+.affix-card h3 {
+    margin: 0;
+    font-size: 20px;
+    color: #FFB74D;
+}
+
+.affix-card p {
+    margin: 0;
+    font-size: 16px;
+    color: #ddd;
+    flex: 1;
+}
+
+.affix-card button {
+    width: 100%;
+    margin: 0;
+}

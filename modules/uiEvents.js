@@ -12,6 +12,7 @@ import { addItem } from './inventory.js';
 import { getPlayerStats } from './playerStats.js';
 import { itemConfig } from '../config/itemConfig.js';
 import { realmBaseConfig } from '../config/cultivationConfig.js';
+import { attemptSoulAwakening } from './affixSystem.js';
 
 export function setupUIEvents() {
     // UI Elements
@@ -171,11 +172,22 @@ export function setupUIEvents() {
         updateSmeltingUI();
     });
 
-    formationBtn.addEventListener('click', () => {
+    const openFormationScreen = (defaultTab = null) => {
         startScreen.classList.add('hidden');
         formationScreen.classList.remove('hidden');
-        updateFormationUI();
-    });
+        if (defaultTab && typeof window.switchFormationTab === 'function') {
+            window.switchFormationTab(defaultTab);
+        } else {
+            updateFormationUI();
+        }
+    };
+
+    if (formationBtn) {
+        formationBtn.addEventListener('click', () => openFormationScreen());
+    }
+
+    window.openFormationScreen = openFormationScreen;
+    window.openCombatFormationScreen = () => openFormationScreen('combat');
 
     inventoryBtn.addEventListener('click', () => {
         state.gameState = 'INVENTORY';
@@ -369,6 +381,9 @@ export function setupUIEvents() {
             if (state.gameState === 'PLAYING' || state.gameState === 'PAUSED') {
                 togglePause();
             }
+        }
+        if (e.key.toLowerCase() === 'f') {
+            attemptSoulAwakening();
         }
         state.keys[e.key.toLowerCase()] = true;
     });
