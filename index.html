@@ -65,22 +65,71 @@
                     <div class="lobby-right">
                         <!-- Player preview will be drawn on canvas behind here -->
                         <h2>玩家状态</h2>
-                        <div id="player-stats-display" style="text-align: left; margin-top: 20px; padding: 0 20px;">
-                            <p class="stat-row" data-stat="hp" style="cursor: pointer;" title="点击查看详情">生命: <span id="stat-hp">0</span> ℹ️</p>
-                            <p class="stat-row" data-stat="physique" style="cursor: pointer;" title="点击查看详情">体魄: <span id="stat-physique">0</span> ℹ️</p>
-                            <p class="stat-row" data-stat="strength" style="cursor: pointer;" title="点击查看详情">力量: <span id="stat-strength">0</span> ℹ️</p>
-                            <p class="stat-row" data-stat="agility" style="cursor: pointer;" title="点击查看详情">敏捷: <span id="stat-agility">0</span> ℹ️</p>
-                            <p class="stat-row" data-stat="comprehension" style="cursor: pointer;" title="点击查看详情">悟性: <span id="stat-comprehension">0</span> ℹ️</p>
-                            <p class="stat-row" data-stat="defense" style="cursor: pointer;" title="点击查看详情">防御: <span id="stat-defense">0</span> ℹ️</p>
-                            <p class="stat-row" data-stat="spiritualPower" style="cursor: pointer;" title="点击查看详情">灵力: <span id="stat-spiritualPower">0</span> ℹ️</p>
-                            <p class="stat-row" data-stat="speed" style="cursor: pointer;" title="点击查看详情">速度: <span id="stat-speed">0</span> ℹ️</p>
-                            <p class="stat-row" data-stat="critChance" style="cursor: pointer;" title="点击查看详情">暴击率: <span id="stat-critChance">0%</span> ℹ️</p>
-                            <p class="stat-row" data-stat="critDamage" style="cursor: pointer;" title="点击查看详情">暴击伤害: <span id="stat-critDamage">200%</span> ℹ️</p>
-                            <p class="stat-row" data-stat="soulAmp" style="cursor: pointer;" title="点击查看详情">灵魂增幅: <span id="stat-soulAmp">0%</span> ℹ️</p>
-                        </div>
-                        <div id="active-formation-wrapper" class="hidden" style="margin: 15px 20px 0 20px; padding: 10px; border: 1px solid rgba(135,206,235,0.5); border-radius: 8px; background: rgba(0,0,0,0.4); text-align: left;">
-                            <p style="margin: 0 0 8px 0; color: #87CEEB; font-weight: bold;">已启用战斗阵法</p>
-                            <div id="active-formation-list" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                        <div class="player-stats-scroll">
+                            <div id="player-stats-display" class="player-stats-panel">
+                                <div class="stat-card" data-stat="hp">
+                                    <span class="stat-label">生命</span>
+                                    <span class="stat-value" id="stat-hp">0</span>
+                                    <span class="stat-hint">ℹ️</span>
+                                </div>
+                                <div class="stat-card" data-stat="physique">
+                                    <span class="stat-label">体魄</span>
+                                    <span class="stat-value" id="stat-physique">0</span>
+                                    <span class="stat-hint">ℹ️</span>
+                                </div>
+                                <div class="stat-card" data-stat="strength">
+                                    <span class="stat-label">力量</span>
+                                    <span class="stat-value" id="stat-strength">0</span>
+                                    <span class="stat-hint">ℹ️</span>
+                                </div>
+                                <div class="stat-card" data-stat="agility">
+                                    <span class="stat-label">敏捷</span>
+                                    <span class="stat-value" id="stat-agility">0</span>
+                                    <span class="stat-hint">ℹ️</span>
+                                </div>
+                                <div class="stat-card" data-stat="comprehension">
+                                    <span class="stat-label">悟性</span>
+                                    <span class="stat-value" id="stat-comprehension">0</span>
+                                    <span class="stat-hint">ℹ️</span>
+                                </div>
+                                <div class="stat-card" data-stat="defense">
+                                    <span class="stat-label">防御</span>
+                                    <span class="stat-value" id="stat-defense">0</span>
+                                    <span class="stat-hint">ℹ️</span>
+                                </div>
+                                <div class="stat-card" data-stat="spiritualPower">
+                                    <span class="stat-label">灵力</span>
+                                    <span class="stat-value" id="stat-spiritualPower">0</span>
+                                    <span class="stat-hint">ℹ️</span>
+                                </div>
+                                <div class="stat-card" data-stat="speed">
+                                    <span class="stat-label">速度</span>
+                                    <span class="stat-value" id="stat-speed">0</span>
+                                    <span class="stat-hint">ℹ️</span>
+                                </div>
+                                <div class="stat-card" data-stat="critChance">
+                                    <span class="stat-label">暴击率</span>
+                                    <span class="stat-value" id="stat-critChance">0%</span>
+                                    <span class="stat-hint">ℹ️</span>
+                                </div>
+                                <div class="stat-card" data-stat="critDamage">
+                                    <span class="stat-label">暴击伤害</span>
+                                    <span class="stat-value" id="stat-critDamage">200%</span>
+                                    <span class="stat-hint">ℹ️</span>
+                                </div>
+                                <div class="stat-card" data-stat="soulAmp">
+                                    <span class="stat-label">灵魂增幅</span>
+                                    <span class="stat-value" id="stat-soulAmp">0%</span>
+                                    <span class="stat-hint">ℹ️</span>
+                                </div>
+                                <div id="active-formation-wrapper" class="stat-card formation-card hidden">
+                                    <div class="formation-card-header">
+                                        <p class="formation-card-title">已启用战斗阵法</p>
+                                        <p class="formation-card-subtitle">阵法效果叠加在此查看</p>
+                                    </div>
+                                    <div id="active-formation-list" class="formation-badge-list"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

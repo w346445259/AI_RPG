@@ -2,7 +2,7 @@ import { state, initState } from './modules/state.js';
 import { draw } from './modules/renderer.js';
 import { 
     updateSpiritStonesDisplay, updatePlayerStatsDisplay, updateSmeltingUI, updateCultivationUI,
-    switchLevelTab, getPlayerStats, updateBuffUI
+    switchLevelTab, getPlayerStats, updateBuffUI, hideLevelClearedOverlay
 } from './modules/ui.js';
 import { 
     initGame, selectLevel
@@ -83,6 +83,7 @@ window.openCultivationScreen = () => {
 
 // Setup UI Events
 setupUIEvents();
+hideLevelClearedOverlay();
 
 // Initial UI Update
 updateSpiritStonesDisplay();

@@ -280,13 +280,6 @@ function updateActiveFormationDisplay() {
     activeCombatFormations.forEach(formation => {
         const btn = document.createElement('button');
         btn.textContent = formation.name;
-        btn.style.backgroundColor = '#3F51B5';
-        btn.style.border = '1px solid rgba(255,255,255,0.2)';
-        btn.style.borderRadius = '4px';
-        btn.style.color = '#fff';
-        btn.style.padding = '4px 10px';
-        btn.style.fontSize = '14px';
-        btn.style.cursor = 'pointer';
         btn.addEventListener('click', () => {
             if (window.openCombatFormationScreen) {
                 window.openCombatFormationScreen();
@@ -298,12 +291,13 @@ function updateActiveFormationDisplay() {
                 if (window.switchFormationTab) window.switchFormationTab('combat');
             }
         });
+        btn.addEventListener('click', event => event.stopPropagation());
         activeFormationList.appendChild(btn);
     });
 }
 
 export function setupStatInteractions() {
-    const statRows = document.querySelectorAll('.stat-row');
+    const statRows = document.querySelectorAll('.stat-card[data-stat]');
     statRows.forEach(row => {
         row.addEventListener('click', () => {
             const stat = row.getAttribute('data-stat');

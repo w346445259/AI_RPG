@@ -49,32 +49,35 @@ canvas {
 
 .lobby-container {
     display: flex;
-    width: 80%;
-    height: 60%;
-    /* background: rgba(0, 0, 0, 0.85); 移除以让右侧显示 canvas */
-    border-radius: 15px;
+    width: 95%;
+    height: 85%;
+    background: rgba(0, 0, 0, 0.85);
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    box-shadow: 0 0 30px rgba(0,0,0,0.6);
+    padding: 30px;
+    gap: 30px;
 }
 
 .lobby-left {
-    flex: 1;
+    flex: 1.2;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border-right: 1px solid #444;
+    justify-content: flex-start;
+    align-items: stretch;
+    border-right: 1px solid rgba(255,255,255,0.08);
     color: white;
-    background: rgba(0, 0, 0, 0.85); /* 背景移动到这里 */
-    padding: 20px;
+    background: rgba(0, 0, 0, 0.65);
+    padding: 20px 30px;
     overflow-y: auto;
+    gap: 15px;
 }
 
 .resource-group {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
-    width: 90%;
+    width: 100%;
     margin-bottom: 15px;
     text-align: center;
 }
@@ -94,7 +97,7 @@ canvas {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 15px;
-    width: 90%;
+    width: 100%;
     margin-top: 10px;
 }
 
@@ -106,14 +109,21 @@ canvas {
 }
 
 .lobby-right {
-    flex: 1;
+    flex: 0.9;
     position: relative;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding-top: 20px;
+    align-items: stretch;
+    padding: 20px 30px;
     color: white;
-    background: transparent; 
+    background: rgba(255, 255, 255, 0.02);
+    border-left: 1px solid rgba(255,255,255,0.08);
+    overflow: hidden;
+}
+
+.lobby-right h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
 }
 
 button {
@@ -322,20 +332,6 @@ button:hover {
     gap: 10px;
 }
 
-.notification-toast {
-    background-color: rgba(0, 0, 0, 0.9);
-    color: #FFD700;
-    padding: 15px 30px;
-    border-radius: 8px;
-    border: 1px solid #FFD700;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-    font-size: 18px;
-    font-weight: bold;
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-    transform: translateY(20px);
-}
-
 .notification-toast.show {
     opacity: 1;
     transform: translateY(0);
@@ -364,6 +360,106 @@ button:hover {
     color: white;
     border-color: #4CAF50;
     border-left: 1px solid #4CAF50; /* Override default tab-btn style */
+}
+
+.player-stats-scroll {
+    width: 100%;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 8px;
+    margin-top: 10px;
+}
+
+.player-stats-panel {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    align-content: flex-start;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 10px 12px;
+    min-height: 90px;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.stat-card:hover {
+    border-color: #4CAF50;
+    transform: translateY(-2px);
+}
+
+.stat-label {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #FFFFFF;
+    margin-top: 6px;
+}
+
+.stat-hint {
+    margin-top: 4px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    align-self: flex-end;
+}
+
+.formation-card {
+    grid-column: 1 / -1;
+    gap: 8px;
+    cursor: default;
+}
+
+.formation-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+}
+
+.formation-card-title {
+    margin: 0;
+    font-size: 16px;
+    color: #87CEEB;
+    font-weight: bold;
+}
+
+.formation-card-subtitle {
+    margin: 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.formation-badge-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.formation-badge-list button {
+    background-color: rgba(63, 81, 181, 0.35);
+    border: 1px solid rgba(135, 206, 235, 0.4);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.formation-badge-list button:hover {
+    background-color: rgba(63, 81, 181, 0.55);
 }
 
 #affix-selection-overlay {
