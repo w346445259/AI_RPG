@@ -1,5 +1,4 @@
 import { state } from './state.js';
-import { playerConfig } from '../config/playerConfig.js';
 import { getNearestMonster } from './utils.js';
 import { getPlayerStats } from './ui.js';
 import { handleMonsterDeath } from './monster.js';
@@ -229,15 +228,28 @@ function shootTarget(target, weapon) {
         const dy = target.y - state.player.y;
         const angle = Math.atan2(dy, dx);
 
-        for (let i = 0; i < weapon.projectileCount; i++) {
+        const projectileCount = weapon.projectileCount || 1;
+        const projectileSpeed = weapon.bulletSpeed || 360;
+        const spread = weapon.projectileSpread ?? 0.2;
+        let baseStart = -spread / 2;
+        let step = 0;
+        if (projectileCount > 1) {
+            step = spread / (projectileCount - 1);
+            if (projectileCount % 2 === 0) {
+                const targetIndex = (projectileCount / 2) - 1; // N/2 弹道命中正前方
+                const desiredAngle = baseStart + step * targetIndex;
+                baseStart -= desiredAngle;
+            }
+        }
+
+        for (let i = 0; i < projectileCount; i++) {
             let spreadAngle = 0;
-            if (weapon.projectileCount > 1) {
-                const spread = 0.2;
-                spreadAngle = -spread/2 + (spread / (weapon.projectileCount - 1)) * i;
+            if (projectileCount > 1) {
+                spreadAngle = baseStart + step * i;
             }
 
-            const vx = Math.cos(angle + spreadAngle) * playerConfig.bulletSpeed;
-            const vy = Math.sin(angle + spreadAngle) * playerConfig.bulletSpeed;
+            const vx = Math.cos(angle + spreadAngle) * projectileSpeed;
+            const vy = Math.sin(angle + spreadAngle) * projectileSpeed;
 
             state.bullets.push({
                 type: 'penetrate',

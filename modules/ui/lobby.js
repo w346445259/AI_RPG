@@ -100,6 +100,12 @@ export function updateReikiDisplay() {
     }
 }
 
+// Expose Reiki display updater globally for systems like smelting that
+// directly consume Reiki and need to refresh the top bar.
+if (typeof window !== 'undefined') {
+    window.updateReikiDisplay = updateReikiDisplay;
+}
+
 export function updateSpiritStonesDisplay() {
     if (spiritStonesDisplay) {
         if (state.totalSpiritStones > 0 && !state.hasUnlockedSpiritStones) {

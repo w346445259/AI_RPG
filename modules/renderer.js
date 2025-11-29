@@ -288,36 +288,6 @@ export function draw(timestamp) {
             // 绘制本局灵石
             ctx.fillStyle = '#87CEEB';
             ctx.fillText(`灵石: ${state.sessionSpiritStones}`, 20, 50);
-
-            // 绘制灵魂收集进度
-            const soulCapacity = state.soulCapacity || 20;
-            const soulCount = state.soulCount || 0;
-            const soulRatio = Math.max(0, Math.min(1, soulCapacity > 0 ? (soulCount / soulCapacity) : 0));
-            const barX = 20;
-            const barY = 80;
-            const barW = 320;
-            const barH = 24;
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-            ctx.fillRect(barX - 8, barY - 12, barW + 70, barH + 34);
-            ctx.fillStyle = '#333';
-            ctx.fillRect(barX, barY, barW, barH);
-            ctx.fillStyle = state.soulReady ? '#FFD54F' : '#BA68C8';
-            ctx.fillRect(barX, barY, barW * soulRatio, barH);
-            ctx.strokeStyle = '#FFFDE7';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(barX, barY, barW, barH);
-
-            ctx.fillStyle = '#FFFDE7';
-            ctx.font = '18px "Microsoft YaHei"';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(`灵魂 ${soulCount.toFixed(1)} / ${soulCapacity}`, barX + 10, barY + barH / 2);
-
-            if (state.soulReady && state.gameState === 'PLAYING') {
-                ctx.textBaseline = 'top';
-                ctx.fillStyle = '#FFD54F';
-                ctx.font = '18px Arial';
-                ctx.fillText('按 F 释放灵魂唤醒', barX, barY + barH + 25);
-            }
         }
     }
 }

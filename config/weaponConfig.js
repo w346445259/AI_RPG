@@ -5,7 +5,7 @@ export const weaponConfig = {
         name: "木棍",
         grade: "凡品",
         category: 'wood',
-        damageMultiplier: 0.5,
+        damageMultiplier: 0.25,
         fireRate: 1000,
         range: 80,
         angle: 120, // 扇形角度
@@ -23,7 +23,7 @@ export const weaponConfig = {
         name: "长剑",
         grade: "凡品",
         category: 'iron',
-        damageMultiplier: 0.7,
+        damageMultiplier: 0.35,
         fireRate: 800,
         range: 150, // 刺击距离
         width: 40, // 刺击宽度
@@ -67,6 +67,7 @@ export const weaponConfig = {
         category: 'wood',
         damageMultiplier: 0.5,
         fireRate: 1000,
+        bulletSpeed: 360,
         projectileCount: 1,
         penetration: 0,
         visual: {
@@ -86,7 +87,7 @@ export const weaponConfig = {
         name: "木槌",
         grade: "凡品",
         category: 'wood',
-        damageMultiplier: 1.0,
+        damageMultiplier: 0.5,
         fireRate: 1500,
         range: 35, // 伤害半径
         offset: 60, // 攻击中心距离玩家的距离
@@ -131,6 +132,7 @@ export const weaponConfig = {
         category: 'iron',
         damageMultiplier: 0.7,
         fireRate: 1000,
+        bulletSpeed: 380,
         projectileCount: 1,
         penetration: 1,
         visual: {
@@ -216,6 +218,7 @@ export const weaponConfig = {
         category: 'refined-iron',
         damageMultiplier: 1.0,
         fireRate: 900,
+        bulletSpeed: 400,
         projectileCount: 1,
         penetration: 2,
         visual: {

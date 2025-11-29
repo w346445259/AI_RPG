@@ -64,7 +64,7 @@ export function smeltItem(key) {
     const recipe = smeltingConfig[key];
     if (!recipe) return false;
 
-    // Check requirements
+    // Check material requirements
     for (const matId in recipe.input) {
         const required = recipe.input[matId];
         const owned = state.inventory[matId] || 0;
@@ -75,10 +75,26 @@ export function smeltItem(key) {
         }
     }
 
+    // Check Reiki (灵气) requirements if present
+    if (recipe.reikiCost) {
+        const currentReiki = state.totalReiki || 0;
+        if (currentReiki < recipe.reikiCost) {
+            showNotification(`灵气不足，需要 ${recipe.reikiCost} 灵气`);
+            return false;
+        }
+    }
+
     // Consume materials
     for (const matId in recipe.input) {
         const required = recipe.input[matId];
         state.inventory[matId] -= required;
+    }
+
+    // Consume Reiki if needed
+    if (recipe.reikiCost) {
+        state.totalReiki = (state.totalReiki || 0) - recipe.reikiCost;
+        if (state.totalReiki < 0) state.totalReiki = 0;
+        localStorage.setItem('totalReiki', state.totalReiki);
     }
 
     // Add output

@@ -62,6 +62,10 @@ window.skipAffixSelection = skipAffixSelection;
 window.smeltItem = (type) => {
     if (smeltItem(type)) {
         updateSmeltingUI();
+        // 熔炼可能消耗灵气，因此刷新灵气显示
+        if (typeof window.updateReikiDisplay === 'function') {
+            window.updateReikiDisplay();
+        }
     }
 };
 

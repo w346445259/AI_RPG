@@ -4,6 +4,9 @@ import { getPlayerStats } from '../playerStats.js';
 const panelEl = document.getElementById('player-health-panel');
 const barEl = document.getElementById('player-health-bar');
 const textEl = document.getElementById('player-health-text');
+const soulBarEl = document.getElementById('player-soul-bar');
+const soulTextEl = document.getElementById('player-soul-text');
+const soulTipEl = document.getElementById('player-soul-tip');
 
 const visibleStates = new Set(['PLAYING', 'PAUSED', 'AFFIX_SELECTION']);
 
@@ -31,4 +34,17 @@ export function updatePlayerHealthPanel(stats) {
 
     barEl.style.width = `${(ratio * 100).toFixed(1)}%`;
     textEl.textContent = `${Math.ceil(currentHp)} / ${Math.ceil(maxHp)}`;
+
+    // 灵魂条与提示
+    if (soulBarEl && soulTextEl) {
+        const capacity = Math.max(1, state.soulCapacity || 1);
+        const soulCount = Math.max(0, state.soulCount || 0);
+        const soulRatio = Math.min(1, soulCount / capacity);
+        soulBarEl.style.width = `${(soulRatio * 100).toFixed(1)}%`;
+        soulBarEl.classList.toggle('ready', !!state.soulReady);
+        soulTextEl.textContent = `${soulCount.toFixed(1)} / ${capacity}`;
+        if (soulTipEl) {
+            soulTipEl.classList.toggle('hidden', !state.soulReady);
+        }
+    }
 }

@@ -40,5 +40,27 @@ export const itemConfig = {
         description: "百炼成钢，比凡铁锭更加坚硬锋利。",
         usable: false,
         icon: "⬜"
+    },
+    // Spirit-infused ingots
+    7: {
+        id: 7,
+        name: "注灵凡铁锭",
+        description: "注入灵气的凡铁锭，蕴含微弱灵性。",
+        usable: false,
+        icon: "🔹"
+    },
+    8: {
+        id: 8,
+        name: "注灵凡铜锭",
+        description: "注入灵气的凡铜锭，更易导引灵力。",
+        usable: false,
+        icon: "🔷"
+    },
+    9: {
+        id: 9,
+        name: "注灵精铁锭",
+        description: "注入大量灵气的精铁锭，仿佛有灵识浮现。",
+        usable: false,
+        icon: "💎"
     }
 };

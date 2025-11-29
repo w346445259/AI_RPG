@@ -77,13 +77,22 @@ export function updateForgingUI() {
 }
 
 export function updateSmeltingUI() {
-    const container = document.querySelector('.smelting-container .upgrade-container');
-    if (!container) return;
-    
-    container.innerHTML = '';
+    const basicContainer = document.querySelector('.smelting-basic-container');
+    const spiritContainer = document.querySelector('.smelting-spirit-container');
 
-    for (const key in smeltingConfig) {
-        const recipe = smeltingConfig[key];
+    // 兼容旧结构：如果找不到分页容器，则退回到原有单容器逻辑
+    const legacyContainer = !basicContainer && !spiritContainer
+        ? document.querySelector('.smelting-container .upgrade-container')
+        : null;
+
+    if (!basicContainer && !spiritContainer && !legacyContainer) return;
+
+    if (basicContainer) basicContainer.innerHTML = '';
+    if (spiritContainer) spiritContainer.innerHTML = '';
+    if (legacyContainer) legacyContainer.innerHTML = '';
+
+    const createSmeltingCard = (recipe, options = {}) => {
+        const { showReiki = false } = options;
         const div = document.createElement('div');
         div.className = 'smelting-item';
         div.style.background = 'rgba(255,255,255,0.1)';
@@ -93,7 +102,7 @@ export function updateSmeltingUI() {
         div.style.width = '300px';
         div.style.margin = '10px';
 
-        // Check requirements
+        // Check material requirements
         let canSmelt = true;
         let reqText = '';
         for (const matId in recipe.input) {
@@ -103,6 +112,16 @@ export function updateSmeltingUI() {
             const color = owned >= required ? '#4CAF50' : '#f44336';
             reqText += `<p>消耗: ${matName} x${required} <span style="color: ${color}">(${owned})</span></p>`;
             if (owned < required) canSmelt = false;
+        }
+
+        let reikiText = '';
+        if (showReiki && recipe.reikiCost) {
+            const ownedReiki = state.totalReiki || 0;
+            const color = ownedReiki >= recipe.reikiCost ? '#4CAF50' : '#f44336';
+            reikiText += `<p>消耗: 灵气 x${recipe.reikiCost} <span style="color: ${color}">(当前: ${Math.floor(ownedReiki)})</span></p>`;
+            if (ownedReiki < recipe.reikiCost) {
+                canSmelt = false;
+            }
         }
 
         let outText = '';
@@ -115,12 +134,43 @@ export function updateSmeltingUI() {
         div.innerHTML = `
             <h3>${recipe.name}</h3>
             ${reqText}
+            ${reikiText}
             ${outText}
-            <button onclick="window.smeltItem('${key}')" style="background-color: ${canSmelt ? '#FF5722' : '#555'}; margin-top: 10px;" ${canSmelt ? '' : 'disabled'}>
-                ${canSmelt ? '熔炼' : '材料不足'}
+            <button onclick="window.smeltItem('${recipe.id}')" style="background-color: ${canSmelt ? '#FF5722' : '#555'}; margin-top: 10px;" ${canSmelt ? '' : 'disabled'}>
+                ${canSmelt ? '熔炼' : '材料/灵气不足'}
             </button>
         `;
-        container.appendChild(div);
+        return div;
+    };
+
+    for (const key in smeltingConfig) {
+        const recipe = smeltingConfig[key];
+        const category = recipe.category || 'basic';
+
+        // 基础兼容模式：如果没有分页容器，则全部渲染到legacyContainer
+        if (legacyContainer) {
+            const card = createSmeltingCard(recipe, { showReiki: !!recipe.reikiCost });
+            legacyContainer.appendChild(card);
+            continue;
+        }
+
+        if (category === 'basic' && basicContainer) {
+            const card = createSmeltingCard(recipe, { showReiki: false });
+            basicContainer.appendChild(card);
+        } else if (category === 'spirit' && spiritContainer) {
+            const card = createSmeltingCard(recipe, { showReiki: true });
+            spiritContainer.appendChild(card);
+        }
+    }
+
+    if (basicContainer && basicContainer.children.length === 0) {
+        basicContainer.innerHTML = '<p>暂无可熔炼的配方。</p>';
+    }
+    if (spiritContainer && spiritContainer.children.length === 0) {
+        spiritContainer.innerHTML = '<p>暂无可注入灵气的配方。</p>';
+    }
+    if (legacyContainer && legacyContainer.children.length === 0) {
+        legacyContainer.innerHTML = '<p>暂无可熔炼的物品。</p>';
     }
 }
 

@@ -55,6 +55,7 @@ export const state = {
     soulCount: 0,
     soulCapacity: 20,
     soulReady: false,
+    runAffixPool: [], // 本局可选词缀池
     pendingBattleBuffs: {}, // { buffId: duration }
     
     // Input
@@ -109,4 +110,5 @@ export function initState() {
     state.soulCount = 0;
     state.soulCapacity = 20;
     state.soulReady = false;
+    state.runAffixPool = [];
 }

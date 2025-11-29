@@ -403,9 +403,79 @@ button:hover {
 
 .battle-stat-row {
     display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.battle-stat-row:last-child {
+    border-bottom: none;
+}
+
+.battle-stat-main {
+    display: flex;
     justify-content: space-between;
+    align-items: center;
     font-size: 14px;
     color: #ddd;
+}
+
+.battle-stat-value {
+    color: #fff;
+    font-size: 14px;
+    text-align: right;
+}
+
+.battle-stat-formula {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.4;
+    padding-left: 4px;
+}
+
+.formula-base {
+    color: #fff;
+}
+
+.formula-formation {
+    color: #ff5252;
+}
+
+.formula-affix {
+    color: #4CAF50;
+}
+
+.battle-stat-legend {
+    margin-top: 10px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 6px;
+}
+
+.battle-stat-legend span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.legend-dot.red {
+    background-color: #ff5252;
+}
+
+.legend-dot.green {
+    background-color: #4CAF50;
 }
 
 /* 战斗血条 */
@@ -450,6 +520,45 @@ button:hover {
     background: linear-gradient(90deg, #ff5252, #ff9800);
     box-shadow: 0 0 15px rgba(255, 82, 82, 0.5);
     transition: width 0.15s ease;
+}
+
+.player-soul-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.player-soul-header {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.player-soul-bar-bg {
+    height: 18px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    overflow: hidden;
+}
+
+#player-soul-bar {
+    width: 0%;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #8e24aa, #ba68c8);
+    box-shadow: 0 0 12px rgba(186, 104, 200, 0.55);
+    transition: width 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+#player-soul-bar.ready {
+    background: linear-gradient(90deg, #ffeb3b, #ffc107);
+    box-shadow: 0 0 16px rgba(255, 235, 59, 0.65);
+}
+
+.player-soul-tip {
+    font-size: 13px;
+    color: #ffd54f;
+    text-align: center;
 }
 
 /* Level Selection Tabs */

@@ -81,8 +81,40 @@ export function getPlayerStats() {
     let finalCritDamage = (playerConfig.critDamage || 2.0) + bonusCritDamage;
     let finalSoulAmp = (playerConfig.soulAmplification || 0) + bonusSoulAmp;
 
+    const createMultiplierBucket = () => ({
+        strength: 0,
+        defense: 0,
+        agility: 0,
+        speed: 0,
+        hpRegen: 0,
+        critChance: 0,
+        critDamage: 0,
+        soulAmp: 0
+    });
+
+    const multiplierBuckets = {
+        general: createMultiplierBucket(),
+        formation: createMultiplierBucket(),
+        affix: createMultiplierBucket()
+    };
+
+    const additiveBonuses = {
+        critDamage: 0
+    };
+
+    const addLinearMultiplier = (stat, value, source = 'general') => {
+        if (!stat || !multiplierBuckets[source]) return;
+        if (multiplierBuckets[source][stat] === undefined) return;
+        multiplierBuckets[source][stat] += value;
+    };
+
+    const addAdditiveBonus = (stat, value) => {
+        if (additiveBonuses[stat] === undefined) return;
+        additiveBonuses[stat] += value;
+    };
+
     // Helper to apply buff stats
-    const applyBuffStats = (config) => {
+    const applyBuffStats = (config, source = 'general') => {
         const value = config.value;
         if (config.type === 'stat_flat') {
             if (config.stat === 'strength') finalStrength += value;
@@ -94,14 +126,11 @@ export function getPlayerStats() {
             if (config.stat === 'critDamage') finalCritDamage += value;
             if (config.stat === 'soulAmp') finalSoulAmp += value;
         } else if (config.type === 'stat_multiplier') {
-            if (config.stat === 'strength') finalStrength *= (1 + value);
-            if (config.stat === 'defense') finalDefense *= (1 + value);
-            if (config.stat === 'agility') finalAgility *= (1 + value);
-            if (config.stat === 'speed') finalSpeed *= (1 + value);
-            if (config.stat === 'hpRegen') hpRegen *= (1 + value);
-            if (config.stat === 'critChance') finalCritChance *= (1 + value);
-            if (config.stat === 'critDamage') finalCritDamage *= (1 + value);
-            if (config.stat === 'soulAmp') finalSoulAmp *= (1 + value);
+            if (config.stat === 'critDamage' && source === 'affix') {
+                addAdditiveBonus('critDamage', value);
+            } else {
+                addLinearMultiplier(config.stat, value, source);
+            }
         }
     };
 
@@ -109,7 +138,7 @@ export function getPlayerStats() {
     if (state.activeBuffs) {
         state.activeBuffs.forEach(buff => {
             const config = buffConfig[buff.id];
-            if (config) applyBuffStats(config);
+            if (config) applyBuffStats(config, 'general');
         });
     }
 
@@ -123,7 +152,7 @@ export function getPlayerStats() {
                     if (config.buffIds && Array.isArray(config.buffIds)) {
                         config.buffIds.forEach(buffId => {
                             const bConfig = buffConfig[buffId];
-                            if (bConfig) applyBuffStats(bConfig);
+                            if (bConfig) applyBuffStats(bConfig, 'formation');
                         });
                     }
                 }
@@ -134,9 +163,74 @@ export function getPlayerStats() {
     if (state.activeAffixes && state.activeAffixes.length > 0) {
         state.activeAffixes.forEach(affixId => {
             const config = affixConfig[affixId];
-            if (config) applyBuffStats(config);
+            if (config) applyBuffStats(config, 'affix');
         });
     }
+
+    const bucketValue = (bucket, key) => 1 + (multiplierBuckets[bucket][key] || 0);
+
+    const applyBucket = (bucket) => {
+        finalStrength *= bucketValue(bucket, 'strength');
+        finalDefense *= bucketValue(bucket, 'defense');
+        finalAgility *= bucketValue(bucket, 'agility');
+        finalSpeed *= bucketValue(bucket, 'speed');
+        hpRegen *= bucketValue(bucket, 'hpRegen');
+        finalCritChance *= bucketValue(bucket, 'critChance');
+        finalCritDamage *= bucketValue(bucket, 'critDamage');
+        finalSoulAmp *= bucketValue(bucket, 'soulAmp');
+    };
+
+    applyBucket('general');
+
+    // 记录阵法/词缀乘算前的基础值，便于公式展示
+    const baseBeforeLinear = {
+        strength: Math.floor(finalStrength),
+        defense: Math.floor(finalDefense),
+        agility: Math.floor(finalAgility),
+        speed: Math.floor(finalSpeed),
+        hpRegen,
+        critChance: finalCritChance,
+        critDamage: finalCritDamage,
+        soulAmp: finalSoulAmp
+    };
+
+    const applyRemainingBuckets = () => {
+        applyBucket('formation');
+        applyBucket('affix');
+    };
+
+    applyRemainingBuckets();
+
+    finalCritDamage += additiveBonuses.critDamage || 0;
+
+    const buildFormula = ({ base = 0, formation = 0, affix = 0, affixAdd = 0 }) => ({
+        base,
+        formation,
+        affix,
+        affixAdd
+    });
+
+    const getBucketStat = (bucket, stat) => multiplierBuckets[bucket][stat] ?? 0;
+
+    const statFormulas = {
+        strength: buildFormula({ base: baseBeforeLinear.strength, formation: getBucketStat('formation', 'strength'), affix: getBucketStat('affix', 'strength') }),
+        defense: buildFormula({ base: baseBeforeLinear.defense, formation: getBucketStat('formation', 'defense'), affix: getBucketStat('affix', 'defense') }),
+        agility: buildFormula({ base: baseBeforeLinear.agility, formation: getBucketStat('formation', 'agility'), affix: getBucketStat('affix', 'agility') }),
+        speed: buildFormula({ base: baseBeforeLinear.speed, formation: getBucketStat('formation', 'speed'), affix: getBucketStat('affix', 'speed') }),
+        hpRegen: buildFormula({ base: baseBeforeLinear.hpRegen, formation: getBucketStat('formation', 'hpRegen'), affix: getBucketStat('affix', 'hpRegen') }),
+        critChance: buildFormula({ base: baseBeforeLinear.critChance, formation: getBucketStat('formation', 'critChance'), affix: getBucketStat('affix', 'critChance') }),
+        critDamage: buildFormula({
+            base: baseBeforeLinear.critDamage,
+            formation: getBucketStat('formation', 'critDamage'),
+            affix: getBucketStat('affix', 'critDamage'),
+            affixAdd: additiveBonuses.critDamage
+        }),
+        soulAmplification: buildFormula({ base: baseBeforeLinear.soulAmp, formation: getBucketStat('formation', 'soulAmp'), affix: getBucketStat('affix', 'soulAmp') }),
+        physique: buildFormula({ base: Math.floor(totalPhysique) }),
+        comprehension: buildFormula({ base: Math.floor(finalComprehension) }),
+        maxHp: buildFormula({ base: Math.floor(maxHp) }),
+        spiritualPower: buildFormula({ base: Math.floor(finalSpiritualPower) })
+    };
 
     const normalizedCritChance = Math.min(1, Math.max(0, finalCritChance));
     const normalizedCritDamage = Math.max(1, finalCritDamage);
@@ -153,6 +247,7 @@ export function getPlayerStats() {
         speed: Math.floor(finalSpeed),
         critChance: normalizedCritChance,
         critDamage: normalizedCritDamage,
-        soulAmplification: Math.max(0, finalSoulAmp)
+        soulAmplification: Math.max(0, finalSoulAmp),
+        statFormulas
     };
 }

@@ -1,5 +1,7 @@
 import { state } from './state.js';
 import { affixPool, affixConfig } from '../config/affixConfig.js';
+import { weaponConfig } from '../config/weaponConfig.js';
+import { getActiveWeaponConfig } from './weaponUtils.js';
 import { showAffixSelection, hideAffixSelection } from './ui/affix.js';
 import { updatePlayerStatsDisplay } from './ui/lobby.js';
 import { getPlayerStats } from './playerStats.js';
@@ -12,6 +14,7 @@ export function initAffixSystem() {
     state.soulCapacity = SOUL_CAPACITY;
     state.soulCount = 0;
     state.soulReady = false;
+    state.runAffixPool = buildRunAffixPool();
     hideAffixSelection();
 }
 
@@ -65,9 +68,40 @@ export function skipAffixSelection() {
 }
 
 function drawAffixOptions(count) {
-    const pool = [...affixPool];
+    const basePool = (Array.isArray(state.runAffixPool) && state.runAffixPool.length > 0)
+        ? state.runAffixPool
+        : affixPool;
+    const filteredPool = filterPoolByShotCap(basePool);
+    const pool = [...filteredPool];
     shuffle(pool);
     return pool.slice(0, count);
+}
+
+// 根据当前武器类型生成可用词缀池
+function buildRunAffixPool() {
+    const weapon = weaponConfig[state.equippedWeaponId];
+    if (!weapon) {
+        return [...affixPool];
+    }
+    const weaponType = weapon.type;
+    return affixPool.filter(affix => {
+        const modifier = affix.weaponModifier;
+        if (!modifier) return true;
+        const targets = Array.isArray(modifier.targetTypes) ? modifier.targetTypes : [];
+        if (targets.length === 0) return true;
+        return targets.includes(weaponType);
+    });
+}
+
+// 当远程武器弹道总量达到3*3时移除相关词缀
+function filterPoolByShotCap(pool) {
+    const weapon = getActiveWeaponConfig();
+    if (!weapon || weapon.type !== 'penetrate') return pool;
+    const projectileCount = Math.max(1, weapon.projectileCount || 1);
+    const burstCount = Math.max(1, weapon.burstCount || 1);
+    if (projectileCount * burstCount < 9) return pool;
+    const cappedIds = new Set([19, 20]);
+    return pool.filter(affix => !cappedIds.has(affix.id));
 }
 
 function shuffle(list) {
