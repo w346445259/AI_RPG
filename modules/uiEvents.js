@@ -69,8 +69,23 @@ export function setupUIEvents() {
     const debugItemCount = document.getElementById('debug-item-count');
     const debugAddItemBtn = document.getElementById('debug-add-item-btn');
     const debugUnlockLevelsBtn = document.getElementById('debug-unlock-levels-btn');
+    const debugStageSelect = document.getElementById('debug-stage-select');
+    const debugSetStageBtn = document.getElementById('debug-set-stage-btn');
 
     // Event Listeners
+    if (debugSetStageBtn) {
+        debugSetStageBtn.addEventListener('click', () => {
+            const stage = parseInt(debugStageSelect.value);
+            if (!isNaN(stage)) {
+                state.cultivationStage = stage;
+                localStorage.setItem('cultivationStage', state.cultivationStage);
+                updateCultivationUI();
+                updatePlayerStatsDisplay();
+                showNotification(`境界已设置为: ${debugStageSelect.options[debugStageSelect.selectedIndex].text}`);
+            }
+        });
+    }
+
     if (testAddExpBtn) {
         testAddExpBtn.addEventListener('click', () => {
             const amount = parseInt(testExpInput.value);
