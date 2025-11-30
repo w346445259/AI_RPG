@@ -13,6 +13,14 @@ export const playerConfig = {
     critChance: 0,   // 基础暴击率 (0% => 0)
     critDamage: 2.0, // 基础暴击伤害倍率 (200%)
     soulAmplification: 0, // 灵魂增幅 (额外灵魂获取百分比)
+    spellPower: 0, // 法术强度 (百分比加成，0 = +0%)
+    spiritualPower: 10, // 基础灵力 (1灵力 = 10法力 + 0.1回蓝/秒)
+    spiritRegen: 0, // 基础法力回复 (每秒) - 由灵力属性决定
     
+    // 法力 (Mana)
+    mana: 100, // 初始法力
+    maxMana: 100, // 初始最大法力
+    manaRegen: 1, // 初始法力回复
+
     initialReiki: 0  // 初始灵气归零，从头开始
 };

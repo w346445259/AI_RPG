@@ -1,7 +1,9 @@
 import { state } from './state.js';
+import { takeDamage } from './player.js';
 import { handleMonsterDeath } from './monster.js';
 import { handleGameOver } from './gameLogic.js';
 import { getNearestMonsterExcluding } from './utils.js';
+import { getPlayerStats } from './playerStats.js';
 
 function calculateBulletDamage(bullet) {
     const critChance = bullet.critChance || 0;
@@ -96,8 +98,9 @@ function updatePenetrateBullet(b, i, dt) {
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < state.player.radius + b.radius) {
-            const actualDamage = Math.max(1, b.damage - (state.player.defense || 0));
-            state.player.hp -= actualDamage;
+            const stats = getPlayerStats();
+            const actualDamage = Math.max(1, b.damage - (stats.defense || 0));
+            takeDamage(actualDamage);
             state.floatingTexts.push({
                 x: state.player.x,
                 y: state.player.y - 20,

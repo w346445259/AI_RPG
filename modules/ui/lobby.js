@@ -169,6 +169,7 @@ export function updatePlayerStatsDisplay() {
     const stats = getPlayerStats();
     
     const hpEl = document.getElementById('stat-hp');
+    const manaEl = document.getElementById('stat-mana');
     const physiqueEl = document.getElementById('stat-physique');
     const strengthEl = document.getElementById('stat-strength');
     const agilityEl = document.getElementById('stat-agility');
@@ -188,12 +189,23 @@ export function updatePlayerStatsDisplay() {
         currentHp = Math.min(currentHp, stats.maxHp);
         hpEl.textContent = `${currentHp} / ${stats.maxHp} (+${stats.hpRegen.toFixed(1)}/s)`;
     }
+    if (manaEl) {
+        let currentMana = Math.floor(state.player.mana || stats.maxMana);
+        if (state.gameState !== 'PLAYING') {
+            currentMana = stats.maxMana;
+        }
+        currentMana = Math.min(currentMana, stats.maxMana);
+        manaEl.textContent = `${currentMana} / ${stats.maxMana} (+${stats.manaRegen.toFixed(1)}/s)`;
+    }
     if (physiqueEl) physiqueEl.textContent = stats.physique;
     if (strengthEl) strengthEl.textContent = stats.strength;
     if (agilityEl) agilityEl.textContent = stats.agility;
     if (comprehensionEl) comprehensionEl.textContent = stats.comprehension;
     if (defenseEl) defenseEl.textContent = stats.defense;
-        if (spiritualPowerEl) spiritualPowerEl.textContent = stats.spiritualPower;
+        if (spiritualPowerEl) {
+            const maxSpirit = Math.max(0, stats.spiritualPower || 0);
+            spiritualPowerEl.textContent = `${maxSpirit}`;
+        }
         if (speedEl) speedEl.textContent = stats.speed;
         if (critChanceEl) critChanceEl.textContent = `${(stats.critChance * 100).toFixed(1)}%`;
         if (critDamageEl) critDamageEl.textContent = `${(stats.critDamage * 100).toFixed(0)}%`;
@@ -326,6 +338,9 @@ function showStatDetails(stat) {
         case 'hp':
             msg = `【生命值】: ${stats.maxHp}。决定了你能承受多少伤害。归零则游戏结束。当前回复速度: ${stats.hpRegen.toFixed(1)}/秒。`;
             break;
+        case 'mana':
+            msg = `【法力值】: ${stats.maxMana}。释放法术消耗的能量。当前回复速度: ${stats.manaRegen.toFixed(1)}/秒。`;
+            break;
         case 'physique':
             msg = `【体魄】: ${stats.physique}。每点体魄增加10点生命上限和0.1点/秒生命回复。`;
             break;
@@ -343,7 +358,7 @@ function showStatDetails(stat) {
             msg = `【防御】: ${stats.defense}。直接减少受到的伤害点数。`;
             break;
         case 'spiritualPower':
-            msg = `【灵力】: ${stats.spiritualPower}。修仙者的核心力量，随境界提升。`;
+            msg = `【灵力】: ${stats.spiritualPower}。每点灵力增加10点法力上限和0.1点/秒法力回复。`;
             break;
         case 'speed':
             msg = `【速度】: ${playerConfig.speed}。移动速度。`;

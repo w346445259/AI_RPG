@@ -95,6 +95,10 @@ export function initGame() {
 
     state.player.hp = stats.maxHp;
     state.player.maxHp = stats.maxHp;
+    state.player.shield = 0;
+    state.player.maxShield = 0;
+    state.player.mana = stats.maxMana;
+    state.player.maxMana = stats.maxMana;
     state.player.lastHitTime = 0;
     
     state.bullets = [];

@@ -6,7 +6,7 @@ export const monsterConfig = {
         speed: 100, // 稍慢
         radius: 20,
         color: '#81C784', // 浅绿色
-        damage: 15, // 伤害提升
+        damage: 80, // 伤害提升
         defense: 0,
         spiritStonesMin: 1,
         spiritStonesMax: 3,
@@ -19,7 +19,7 @@ export const monsterConfig = {
         speed: 120, // 速度较快 -> 降低速度，方便追击
         radius: 15,
         color: '#E57373', // 浅红色
-        damage: 25, // 伤害较高
+        damage: 40, // 伤害较高
         defense: 0,
         spiritStonesMin: 2,
         spiritStonesMax: 5,

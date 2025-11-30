@@ -6,6 +6,7 @@ import { cameraConfig } from '../config/cameraConfig.js';
 import { handleVictory, handleGameOver } from './gameLogic.js';
 import { getScaledKillRequirement } from './levelUtils.js';
 import { gainSoulFromKill } from './affixSystem.js';
+import { getPlayerStats } from './playerStats.js';
 
 export function updateSpawning(timestamp) {
     const config = levelConfig[state.currentLevel] || levelConfig[1];
@@ -113,6 +114,8 @@ export function spawnMonster() {
     });
 }
 
+import { takeDamage } from './player.js';
+
 export function updateMonsters(timestamp, dt) {
     for (let i = 0; i < state.monsters.length; i++) {
         const m = state.monsters[i];
@@ -188,8 +191,9 @@ export function updateMonsters(timestamp, dt) {
 
         if (dist < state.player.radius + m.radius) {
             if (timestamp - state.player.lastHitTime > 1000) {
-                const actualDamage = Math.max(1, m.damage - (state.player.defense || 0));
-                state.player.hp -= actualDamage;
+                const stats = getPlayerStats();
+                const actualDamage = Math.max(1, m.damage - (stats.defense || 0));
+                takeDamage(actualDamage);
                 state.player.lastHitTime = timestamp;
                 state.floatingTexts.push({
                     x: state.player.x,
@@ -239,7 +243,7 @@ export function monsterAttack(monster, weapon, timestamp) {
         const dist = Math.sqrt(dx*dx + dy*dy);
         if (dist <= weapon.range + state.player.radius) {
              const actualDamage = Math.max(1, (monster.damage * weapon.damageMultiplier) - state.player.defense);
-             state.player.hp -= actualDamage;
+             takeDamage(actualDamage);
              state.floatingTexts.push({
                 x: state.player.x,
                 y: state.player.y - 20,

@@ -4,6 +4,7 @@ import { bodyRefiningConfig, realmBaseConfig, qiCondensationConfig, bodyStrength
 import { buffConfig } from '../config/buffConfig.js';
 import { formationConfig } from '../config/formationConfig.js';
 import { affixConfig } from '../config/affixConfig.js';
+import { weaponConfig } from '../config/weaponConfig.js';
 
 export function getPlayerStats() {
     let bonusStrength = 0;
@@ -15,6 +16,8 @@ export function getPlayerStats() {
     let bonusCritChance = 0;
     let bonusCritDamage = 0;
     let bonusSoulAmp = 0;
+    let bonusSpiritRegen = 0;
+    let bonusSpellPower = 0;
 
     // 境界基础加成 (Realm Base Stats)
     for (const stageStr in realmBaseConfig) {
@@ -67,6 +70,15 @@ export function getPlayerStats() {
         bonusAgility += state.bodyStrengtheningLevel * 1;
     }
 
+    // Weapon Stats
+    if (state.equippedWeaponId) {
+        const weapon = weaponConfig[state.equippedWeaponId];
+        if (weapon && weapon.stats) {
+            if (weapon.stats.spellPower) bonusSpellPower += weapon.stats.spellPower;
+            // Add other weapon stats here if needed in the future
+        }
+    }
+
     const totalPhysique = playerConfig.physique + bonusPhysique;
     let maxHp = playerConfig.maxHp + (totalPhysique * 10);
     let hpRegen = totalPhysique * 0.1;
@@ -75,11 +87,18 @@ export function getPlayerStats() {
     let finalAgility = playerConfig.agility + bonusAgility;
     let finalComprehension = playerConfig.comprehension + bonusComprehension;
     let finalDefense = playerConfig.defense + bonusDefense;
-    let finalSpiritualPower = bonusSpiritualPower;
+    let finalSpiritualPower = (playerConfig.spiritualPower ?? 10) + bonusSpiritualPower;
+    // let finalSpiritRegen = (playerConfig.spiritRegen ?? 1) + bonusSpiritRegen; // Deprecated
     let finalSpeed = playerConfig.speed;
     let finalCritChance = (playerConfig.critChance || 0) + bonusCritChance;
     let finalCritDamage = (playerConfig.critDamage || 2.0) + bonusCritDamage;
     let finalSoulAmp = (playerConfig.soulAmplification || 0) + bonusSoulAmp;
+    let finalSpellPower = (playerConfig.spellPower || 0) + bonusSpellPower;
+
+    // Mana Calculation
+    // 1 Spiritual Power = 10 Max Mana + 0.1 Mana Regen
+    let maxMana = (finalSpiritualPower * 10);
+    let manaRegen = (finalSpiritualPower * 0.1) + bonusSpiritRegen;
 
     const createMultiplierBucket = () => ({
         strength: 0,
@@ -89,7 +108,10 @@ export function getPlayerStats() {
         hpRegen: 0,
         critChance: 0,
         critDamage: 0,
-        soulAmp: 0
+        soulAmp: 0,
+        spiritualPower: 0,
+        manaRegen: 0,
+        spellPower: 0
     });
 
     const multiplierBuckets = {
@@ -125,6 +147,9 @@ export function getPlayerStats() {
             if (config.stat === 'critChance') finalCritChance += value;
             if (config.stat === 'critDamage') finalCritDamage += value;
             if (config.stat === 'soulAmp') finalSoulAmp += value;
+            if (config.stat === 'spiritualPower') finalSpiritualPower += value;
+            if (config.stat === 'manaRegen') manaRegen += value;
+            if (config.stat === 'spellPower') finalSpellPower += value;
         } else if (config.type === 'stat_multiplier') {
             if (config.stat === 'critDamage' && source === 'affix') {
                 addAdditiveBonus('critDamage', value);
@@ -178,11 +203,12 @@ export function getPlayerStats() {
         finalCritChance *= bucketValue(bucket, 'critChance');
         finalCritDamage *= bucketValue(bucket, 'critDamage');
         finalSoulAmp *= bucketValue(bucket, 'soulAmp');
+        finalSpiritualPower *= bucketValue(bucket, 'spiritualPower');
+        manaRegen *= bucketValue(bucket, 'manaRegen');
+        finalSpellPower *= bucketValue(bucket, 'spellPower');
     };
 
-    applyBucket('general');
-
-    // 记录阵法/词缀乘算前的基础值，便于公式展示
+    // 记录乘算前的基础值 (Config + Realm + Flat Buffs)
     const baseBeforeLinear = {
         strength: Math.floor(finalStrength),
         defense: Math.floor(finalDefense),
@@ -191,8 +217,13 @@ export function getPlayerStats() {
         hpRegen,
         critChance: finalCritChance,
         critDamage: finalCritDamage,
-        soulAmp: finalSoulAmp
+        soulAmp: finalSoulAmp,
+        spiritualPower: finalSpiritualPower,
+        manaRegen: manaRegen,
+        spellPower: finalSpellPower
     };
+
+    applyBucket('general');
 
     const applyRemainingBuckets = () => {
         applyBucket('formation');
@@ -203,8 +234,9 @@ export function getPlayerStats() {
 
     finalCritDamage += additiveBonuses.critDamage || 0;
 
-    const buildFormula = ({ base = 0, formation = 0, affix = 0, affixAdd = 0 }) => ({
+    const buildFormula = ({ base = 0, general = 0, formation = 0, affix = 0, affixAdd = 0 }) => ({
         base,
+        general,
         formation,
         affix,
         affixAdd
@@ -213,27 +245,33 @@ export function getPlayerStats() {
     const getBucketStat = (bucket, stat) => multiplierBuckets[bucket][stat] ?? 0;
 
     const statFormulas = {
-        strength: buildFormula({ base: baseBeforeLinear.strength, formation: getBucketStat('formation', 'strength'), affix: getBucketStat('affix', 'strength') }),
-        defense: buildFormula({ base: baseBeforeLinear.defense, formation: getBucketStat('formation', 'defense'), affix: getBucketStat('affix', 'defense') }),
-        agility: buildFormula({ base: baseBeforeLinear.agility, formation: getBucketStat('formation', 'agility'), affix: getBucketStat('affix', 'agility') }),
-        speed: buildFormula({ base: baseBeforeLinear.speed, formation: getBucketStat('formation', 'speed'), affix: getBucketStat('affix', 'speed') }),
-        hpRegen: buildFormula({ base: baseBeforeLinear.hpRegen, formation: getBucketStat('formation', 'hpRegen'), affix: getBucketStat('affix', 'hpRegen') }),
-        critChance: buildFormula({ base: baseBeforeLinear.critChance, formation: getBucketStat('formation', 'critChance'), affix: getBucketStat('affix', 'critChance') }),
+        strength: buildFormula({ base: baseBeforeLinear.strength, general: getBucketStat('general', 'strength'), formation: getBucketStat('formation', 'strength'), affix: getBucketStat('affix', 'strength') }),
+        defense: buildFormula({ base: baseBeforeLinear.defense, general: getBucketStat('general', 'defense'), formation: getBucketStat('formation', 'defense'), affix: getBucketStat('affix', 'defense') }),
+        agility: buildFormula({ base: baseBeforeLinear.agility, general: getBucketStat('general', 'agility'), formation: getBucketStat('formation', 'agility'), affix: getBucketStat('affix', 'agility') }),
+        speed: buildFormula({ base: baseBeforeLinear.speed, general: getBucketStat('general', 'speed'), formation: getBucketStat('formation', 'speed'), affix: getBucketStat('affix', 'speed') }),
+        hpRegen: buildFormula({ base: baseBeforeLinear.hpRegen, general: getBucketStat('general', 'hpRegen'), formation: getBucketStat('formation', 'hpRegen'), affix: getBucketStat('affix', 'hpRegen') }),
+        critChance: buildFormula({ base: baseBeforeLinear.critChance, general: getBucketStat('general', 'critChance'), formation: getBucketStat('formation', 'critChance'), affix: getBucketStat('affix', 'critChance') }),
         critDamage: buildFormula({
             base: baseBeforeLinear.critDamage,
+            general: getBucketStat('general', 'critDamage'),
             formation: getBucketStat('formation', 'critDamage'),
             affix: getBucketStat('affix', 'critDamage'),
             affixAdd: additiveBonuses.critDamage
         }),
-        soulAmplification: buildFormula({ base: baseBeforeLinear.soulAmp, formation: getBucketStat('formation', 'soulAmp'), affix: getBucketStat('affix', 'soulAmp') }),
+        soulAmplification: buildFormula({ base: baseBeforeLinear.soulAmp, general: getBucketStat('general', 'soulAmp'), formation: getBucketStat('formation', 'soulAmp'), affix: getBucketStat('affix', 'soulAmp') }),
         physique: buildFormula({ base: Math.floor(totalPhysique) }),
         comprehension: buildFormula({ base: Math.floor(finalComprehension) }),
         maxHp: buildFormula({ base: Math.floor(maxHp) }),
-        spiritualPower: buildFormula({ base: Math.floor(finalSpiritualPower) })
+        spiritualPower: buildFormula({ base: baseBeforeLinear.spiritualPower, general: getBucketStat('general', 'spiritualPower'), formation: getBucketStat('formation', 'spiritualPower'), affix: getBucketStat('affix', 'spiritualPower') }),
+        manaRegen: buildFormula({ base: baseBeforeLinear.manaRegen, general: getBucketStat('general', 'manaRegen'), formation: getBucketStat('formation', 'manaRegen'), affix: getBucketStat('affix', 'manaRegen') }),
+        spellPower: buildFormula({ base: baseBeforeLinear.spellPower, general: getBucketStat('general', 'spellPower'), formation: getBucketStat('formation', 'spellPower'), affix: getBucketStat('affix', 'spellPower') })
     };
 
     const normalizedCritChance = Math.min(1, Math.max(0, finalCritChance));
     const normalizedCritDamage = Math.max(1, finalCritDamage);
+
+    // Recalculate Max Mana based on final Spiritual Power
+    maxMana = Math.floor(finalSpiritualPower * 10);
 
     return {
         strength: Math.floor(finalStrength),
@@ -248,6 +286,9 @@ export function getPlayerStats() {
         critChance: normalizedCritChance,
         critDamage: normalizedCritDamage,
         soulAmplification: Math.max(0, finalSoulAmp),
+        manaRegen: Math.max(0, manaRegen),
+        maxMana: maxMana,
+        spellPower: finalSpellPower,
         statFormulas
     };
 }

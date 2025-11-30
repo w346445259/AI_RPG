@@ -183,17 +183,6 @@ export const affixConfig = {
             ]
         }
     },
-    21: {
-        id: 21,
-        name: '流火速节',
-        description: '连射间隔-20%',
-        weaponModifier: {
-            targetTypes: ['penetrate'],
-            changes: [
-                { stat: 'burstDelay', mode: 'mul', value: -0.2, defaultBase: 100 }
-            ]
-        }
-    },
     22: {
         id: 22,
         name: '星链加弹',
@@ -204,6 +193,14 @@ export const affixConfig = {
                 { stat: 'bounceCount', mode: 'add', value: 1, defaultBase: 0 }
             ]
         }
+    },
+    23: {
+        id: 23,
+        name: '噬魂之欲',
+        description: '灵魂获取速度+10%',
+        type: 'stat_flat',
+        stat: 'soulAmp',
+        value: 0.1
     }
 };
 

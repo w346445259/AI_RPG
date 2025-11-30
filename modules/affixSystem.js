@@ -56,6 +56,7 @@ export function selectAffix(affixId) {
     hideAffixSelection();
     state.gameState = 'PLAYING';
     state.soulCount = Math.max(0, state.soulCount - state.soulCapacity);
+    state.soulCapacity += 10;
     updatePlayerStatsDisplay();
     updateSoulReadyFlag();
 }

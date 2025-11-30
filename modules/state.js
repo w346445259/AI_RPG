@@ -14,7 +14,11 @@ export const state = {
         color: playerConfig.color,
         hp: 100,
         maxHp: 100,
+        shield: 0, // 护盾值
+        maxShield: 0, // 最大护盾值 (用于UI显示比例)
         defense: 0,
+        mana: 100, // 法力值
+        maxMana: 100, // 最大法力值
         lastHitTime: 0
     },
     
@@ -36,7 +40,7 @@ export const state = {
     totalSpiritStones: 0,
     hasUnlockedSpiritStones: false,
     totalReiki: 0,
-    spiritualPower: 0, // 灵力 (新增)
+    // spiritualPower: 0, // Removed: Now a stat, mana is the resource
     totalExp: 0,
     cultivationStage: 0,
     bodyStrengtheningLevel: 0, // 气血锻体等级 (新增)
@@ -48,6 +52,9 @@ export const state = {
     ownedWeapons: [4],
     equippedWeaponId: 4,
     activeFormations: {}, // { formationId: boolean }
+    learnedSpells: [], // 已学习的法术ID列表
+    equippedSpells: [], // 已装备的法术ID列表 (最大3个)
+    spellCooldowns: {}, // { spellId: remainingTimeMs }
     activeBuffs: [], // { id, duration, maxDuration }
     maxCombatFormations: 2, // 战斗阵法上阵上限
     activeAffixes: [], // 战斗词缀
@@ -60,6 +67,7 @@ export const state = {
     
     // Input
     keys: {},
+    mouse: { x: 0, y: 0 },
     
     // Timers
     lastShotTime: 0,
@@ -96,6 +104,8 @@ export function initState() {
     state.equippedWeaponId = parseInt(localStorage.getItem('equippedWeaponId')) || 4;
     state.inventory = JSON.parse(localStorage.getItem('inventory')) || {};
     state.ownedWeapons = JSON.parse(localStorage.getItem('ownedWeapons')) || [4];
+    state.learnedSpells = JSON.parse(localStorage.getItem('learnedSpells')) || [];
+    state.equippedSpells = JSON.parse(localStorage.getItem('equippedSpells')) || [];
     state.activeFormations = JSON.parse(localStorage.getItem('activeFormations')) || {};
     const storedMaxCombat = parseInt(localStorage.getItem('maxCombatFormations'));
     state.maxCombatFormations = Number.isFinite(storedMaxCombat) ? storedMaxCombat : 2;

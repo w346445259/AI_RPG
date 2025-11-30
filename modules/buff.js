@@ -4,19 +4,30 @@ import { showNotification } from './ui/common.js';
 import { updateBuffUI } from './ui/buff.js';
 import { updatePlayerStatsDisplay } from './ui/lobby.js';
 
-export function applyBuff(buffId, duration) {
+export function applyBuff(buffId, duration, customValue = null) {
     const config = buffConfig[buffId];
     if (!config) return;
+
+    let appliedValue = config.value;
+
+    // Handle immediate effects
+    if (config.type === 'shield_add') {
+        appliedValue = customValue !== null ? customValue : config.value;
+        state.player.shield = (state.player.shield || 0) + appliedValue;
+        state.player.maxShield = Math.max((state.player.maxShield || 0), state.player.shield);
+    }
 
     const existingBuff = state.activeBuffs.find(b => b.id === buffId);
     if (existingBuff) {
         existingBuff.duration = duration;
         existingBuff.maxDuration = duration;
+        existingBuff.value = appliedValue;
     } else {
         state.activeBuffs.push({
             id: buffId,
             duration: duration,
-            maxDuration: duration
+            maxDuration: duration,
+            value: appliedValue
         });
     }
     
@@ -52,8 +63,15 @@ export function updateBuffs(dt) {
     let changed = false;
     for (let i = state.activeBuffs.length - 1; i >= 0; i--) {
         const buff = state.activeBuffs[i];
-        buff.duration -= dt;
+        buff.duration -= dt * 1000;
         if (buff.duration <= 0) {
+            // Handle expiration effects
+            const config = buffConfig[buff.id];
+            if (config && config.type === 'shield_add') {
+                const removeValue = buff.value !== undefined ? buff.value : config.value;
+                state.player.shield = Math.max(0, (state.player.shield || 0) - removeValue);
+            }
+
             state.activeBuffs.splice(i, 1);
             changed = true;
         }

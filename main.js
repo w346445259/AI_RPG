@@ -3,7 +3,7 @@ import { draw } from './modules/renderer.js';
 import { 
     updateSpiritStonesDisplay, updatePlayerStatsDisplay, updateSmeltingUI, updateCultivationUI,
     switchLevelTab, getPlayerStats, updateBuffUI, hideLevelClearedOverlay,
-    initBattleStatsUI, updateBattleStatsPanel, initPlayerHealthPanel, updatePlayerHealthPanel
+    initBattleStatsUI, updateBattleStatsPanel, initPlayerHealthPanel, updatePlayerHealthPanel, updateSpellBar
 } from './modules/ui.js';
 import { 
     initGame, selectLevel
@@ -22,6 +22,7 @@ import { setupUIEvents } from './modules/uiEvents.js';
 import { updateBuffs, applyBuff, queueBattleBuff } from './modules/buff.js';
 import { updateFormations } from './modules/formationLogic.js';
 import { selectAffix, skipAffixSelection } from './modules/affixSystem.js';
+import { updateSpells, castSpell } from './modules/spellSystem.js';
 
 // Initialize State
 state.canvas = document.getElementById('gameCanvas');
@@ -34,6 +35,16 @@ initState();
 
 // Calculate Offline Progress immediately after init
 calculateOfflineProgress();
+
+// 初始化灵力到上限，若已存在存档则进行上限压缩
+{
+    const initialStats = getPlayerStats();
+    if (!Number.isFinite(state.spiritualPower) || state.spiritualPower <= 0) {
+        state.spiritualPower = initialStats.spiritualPower;
+    } else {
+        state.spiritualPower = Math.min(state.spiritualPower, initialStats.spiritualPower);
+    }
+}
 
 // Resize Logic
 function resizeGame() {
@@ -153,6 +164,15 @@ function update(timestamp, dt) {
         if (state.player.hp > stats.maxHp) state.player.hp = stats.maxHp;
     }
 
+    // Mana Regen
+    const maxMana = Math.max(1, stats.maxMana);
+    if (state.player.mana < maxMana) {
+        state.player.mana += (stats.manaRegen || 0) * dt;
+        if (state.player.mana > maxMana) state.player.mana = maxMana;
+    } else if (state.player.mana > maxMana) {
+        state.player.mana = maxMana;
+    }
+
     updatePlayerMovement(dt);
     updateCamera();
     updateSpawning(timestamp);
@@ -164,7 +184,9 @@ function update(timestamp, dt) {
     updateBuffUI();
     updateBattleStatsPanel(stats);
     updatePlayerHealthPanel(stats);
+    updateSpellBar();
     updateFormations(dt);
+    updateSpells(dt);
     
     // Floating texts update
     for (let i = state.floatingTexts.length - 1; i >= 0; i--) {
@@ -178,3 +200,21 @@ function update(timestamp, dt) {
 }
 
 requestAnimationFrame(loop);
+
+window.addEventListener('keydown', (e) => {
+    if (state.gameState === 'PLAYING') {
+        if (e.key === '1') castSpell(0);
+        if (e.key === '2') castSpell(1);
+        if (e.key === '3') castSpell(2);
+    }
+});
+
+
+window.addEventListener('mousemove', (e) => {
+    const rect = state.canvas.getBoundingClientRect();
+    const scaleX = state.canvas.width / rect.width;
+    const scaleY = state.canvas.height / rect.height;
+    state.mouse.x = (e.clientX - rect.left) * scaleX;
+    state.mouse.y = (e.clientY - rect.top) * scaleY;
+});
+

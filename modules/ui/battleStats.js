@@ -16,7 +16,9 @@ const statElements = {
     critChance: document.getElementById('battle-stat-critChance'),
     critDamage: document.getElementById('battle-stat-critDamage'),
     soulAmplification: document.getElementById('battle-stat-soulAmp'),
-    spiritualPower: document.getElementById('battle-stat-spiritualPower')
+    spellPower: document.getElementById('battle-stat-spellPower'),
+    spiritualPower: document.getElementById('battle-stat-spiritualPower'),
+    manaRegen: document.getElementById('battle-stat-spiritRegen')
 };
 
 const formulaElements = {
@@ -31,7 +33,9 @@ const formulaElements = {
     critChance: document.getElementById('battle-formula-critChance'),
     critDamage: document.getElementById('battle-formula-critDamage'),
     soulAmplification: document.getElementById('battle-formula-soulAmp'),
-    spiritualPower: document.getElementById('battle-formula-spiritualPower')
+    spellPower: document.getElementById('battle-formula-spellPower'),
+    spiritualPower: document.getElementById('battle-formula-spiritualPower'),
+    manaRegen: document.getElementById('battle-formula-spiritRegen')
 };
 
 let isVisible = false;
@@ -43,6 +47,8 @@ function formatStat(key, stats) {
     switch (key) {
         case 'hpRegen':
             return `${((stats.hpRegen ?? 0)).toFixed(1)}/秒`;
+        case 'manaRegen':
+            return `${((stats.manaRegen ?? 0)).toFixed(1)}/秒`;
         case 'speed':
             return `${((stats.speed ?? 0)).toFixed(1)} 像素/秒`;
         case 'critChance':
@@ -51,6 +57,8 @@ function formatStat(key, stats) {
             return `${(((stats.critDamage ?? 0) * 100)).toFixed(0)}%`;
         case 'soulAmplification':
             return `${(((stats.soulAmplification ?? 0) * 100)).toFixed(1)}%`;
+        case 'spellPower':
+            return `${(((stats.spellPower ?? 0) * 100)).toFixed(1)}%`;
         default:
             return stats[key] !== undefined ? Math.floor(stats[key]) : '0';
     }
@@ -130,11 +138,12 @@ export function updateBattleStatsPanel(stats) {
 function updateFormulaText(key, stats) {
     const formulaEl = formulaElements[key];
     if (!formulaEl) return;
-    const info = (stats.statFormulas && stats.statFormulas[key]) || { base: stats[key] ?? 0, formation: 0, affix: 0, affixAdd: 0 };
+    const info = (stats.statFormulas && stats.statFormulas[key]) || { base: stats[key] ?? 0, general: 0, formation: 0, affix: 0, affixAdd: 0 };
+    const hasGeneral = Math.abs(info.general || 0) > 0.0001;
     const hasFormation = Math.abs(info.formation || 0) > 0.0001;
     const hasAffix = Math.abs(info.affix || 0) > 0.0001;
     const hasAffixAdd = Math.abs(info.affixAdd || 0) > 0.0001;
-    if (!hasFormation && !hasAffix && !hasAffixAdd) {
+    if (!hasGeneral && !hasFormation && !hasAffix && !hasAffixAdd) {
         formulaEl.textContent = '';
         formulaEl.classList.add('hidden');
         return;
@@ -142,6 +151,10 @@ function updateFormulaText(key, stats) {
 
     const baseStr = formatFormulaBase(key, info.base);
     const segments = [`<span class="formula-base">${baseStr}</span>`];
+    if (hasGeneral) {
+        const generalStr = formatPercentValue(info.general);
+        segments.push(`(1 + <span class="formula-general">${generalStr}</span>)`);
+    }
     if (hasFormation) {
         const formationStr = formatPercentValue(info.formation);
         segments.push(`(1 + <span class="formula-formation">${formationStr}</span>)`);
@@ -166,7 +179,7 @@ function updateFormulaText(key, stats) {
 
 function formatFormulaBase(key, value) {
     if (!Number.isFinite(value)) return '0';
-    if (key === 'hpRegen' || key === 'speed') {
+    if (key === 'hpRegen' || key === 'speed' || key === 'manaRegen') {
         return value.toFixed(1);
     }
     if (key === 'critChance' || key === 'soulAmplification') {

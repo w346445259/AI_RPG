@@ -9,3 +9,4 @@ export * from './ui/buff.js';
 export * from './ui/affix.js';
 export * from './ui/battleStats.js';
 export * from './ui/hud.js';
+export * from './ui/spell.js';

@@ -88,5 +88,31 @@ export const buffConfig = {
         type: "stat_flat",
         stat: "soulAmp",
         value: 0.2
+    },
+    102: {
+        id: 102,
+        name: "灵盾术",
+        icon: "🛡️",
+        description: "增加 50 点护盾",
+        type: "shield_add",
+        value: 50
+    },
+    103: {
+        id: 103,
+        name: "轻身术",
+        icon: "🍃",
+        description: "提升 50% 移动速度",
+        type: "stat_multiplier",
+        stat: "speed",
+        value: 0.5
+    },
+    105: {
+        id: 105,
+        name: "回春术",
+        icon: "🌿",
+        description: "每秒恢复 10 点生命",
+        type: "stat_flat",
+        stat: "hpRegen",
+        value: 10
     }
 };

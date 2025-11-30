@@ -17,32 +17,76 @@
             <!-- Pause Button (Visible during gameplay) -->
             <button id="pause-btn" class="hidden" style="position: absolute; top: 20px; right: 20px; z-index: 20;">暂停</button>
 
-            <!-- Buff Bar -->
-            <div id="buff-bar" class="hidden" style="position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 20; display: flex; flex-direction: column; gap: 10px; align-items: center;">
+            <!-- Buff Bar (Legacy container, keeping formation-bar if needed by other logic, though hud.js handles battle formations) -->
+            <div id="buff-bar" class="hidden" style="position: absolute; bottom: 140px; left: 50%; transform: translateX(-50%); z-index: 20; display: flex; flex-direction: column; gap: 10px; align-items: center;">
                 <!-- Formations -->
                 <div id="formation-bar" style="display: flex; gap: 10px;"></div>
-                <!-- Buffs -->
-                <div id="active-buff-bar" style="display: flex; gap: 10px;"></div>
             </div>
 
-            <!-- Player Health Panel -->
-            <div id="player-health-panel" class="hidden">
-                <div class="player-health-header">
-                    <span>生命值</span>
-                    <span id="player-health-text">0 / 0</span>
+            <!-- Combat Bottom Panel (New Wrapper) -->
+            <div id="combat-bottom-panel" class="hidden">
+                <!-- Spell Bar -->
+                <div id="spell-bar-container">
+                    <div id="spell-bar"></div>
                 </div>
-                <div class="player-health-bar-bg">
-                    <div id="player-health-bar"></div>
-                </div>
-                <div class="player-soul-section">
-                    <div class="player-health-header player-soul-header">
-                        <span>灵魂能量</span>
-                        <span id="player-soul-text">0 / 0</span>
+
+                <!-- Player Battle HUD: HP / Spirit / Soul -->
+                <div id="player-health-panel">
+                    <div class="player-hp-spirit-main">
+                        <div class="player-health-block">
+                            <div class="player-health-header">
+                                <span>生命值</span>
+                                <span>
+                                    <span id="player-shield-text" class="hidden" style="color: #FFD700; margin-right: 8px; font-size: 12px;"></span>
+                                    <span id="player-health-text">0 / 0</span>
+                                </span>
+                            </div>
+                            <!-- Shield Bar -->
+                            <div id="player-shield-bar-container" style="height: 4px; background: #333; margin-bottom: 2px; position: relative;">
+                                <div id="player-shield-bar" style="height: 100%; width: 0%; background: #FFD700; transition: width 0.2s;"></div>
+                            </div>
+                            <div class="player-health-bar-bg">
+                                <div id="player-health-bar"></div>
+                            </div>
+                        </div>
+                        <div class="player-spirit-block">
+                            <div class="player-spirit-header">
+                                <span>法力</span>
+                                <span id="player-spirit-text">0 / 0</span>
+                            </div>
+                            <div class="player-spirit-bar-bg">
+                                <div id="player-spirit-bar"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Fixed Status Area (Formations & Buffs) -->
+                        <div class="status-fixed-area">
+                            <!-- Active Combat Formations -->
+                            <div class="status-section">
+                                <div class="status-title" id="battle-active-formation-title">已启用战斗阵法</div>
+                                <div id="battle-active-formation-wrapper">
+                                    <div id="battle-active-formation-list"></div>
+                                </div>
+                            </div>
+                            <!-- Active Buffs -->
+                            <div class="status-section">
+                                <div class="status-title">状态</div>
+                                <div id="active-buff-bar"></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="player-health-bar-bg player-soul-bar-bg">
-                        <div id="player-soul-bar"></div>
+                    <div id="player-soul-panel" class="player-soul-vertical">
+                        <div class="player-soul-header">
+                            <span>灵魂能量</span>
+                            <span id="player-soul-text">0 / 0</span>
+                        </div>
+                        <div class="player-soul-vertical-shell">
+                            <div class="player-soul-vertical-inner">
+                                <div id="player-soul-bar"></div>
+                            </div>
+                            <div id="player-soul-tip" class="player-soul-key">F</div>
+                        </div>
                     </div>
-                    <div id="player-soul-tip" class="player-soul-tip hidden">按 F 释放灵魂觉醒</div>
                 </div>
             </div>
 
@@ -131,12 +175,27 @@
                         </div>
                         <div class="battle-stat-formula hidden" id="battle-formula-soulAmp"></div>
                     </div>
-                    <div class="battle-stat-row" data-stat="spiritualPower">
+                    <div class="battle-stat-row" data-stat="spellPower">
                         <div class="battle-stat-main">
-                            <span>灵力</span>
-                            <span class="battle-stat-value" id="battle-stat-spiritualPower">0</span>
+                            <span>法术强度</span>
+                            <span class="battle-stat-value" id="battle-stat-spellPower">0%</span>
                         </div>
-                        <div class="battle-stat-formula hidden" id="battle-formula-spiritualPower"></div>
+                        <div class="battle-stat-formula hidden" id="battle-formula-spellPower"></div>
+                    </div>
+                    <div class="battle-stat-row" data-stat="spiritualPower">
+                            <div class="battle-stat-main">
+                                <span>灵力</span>
+                                <span class="battle-stat-value" id="battle-stat-spiritualPower">0</span>
+                            </div>
+                            <div class="battle-stat-formula hidden" id="battle-formula-spiritualPower"></div>
+                        </div>
+                        <div class="battle-stat-row" data-stat="manaRegen">
+                            <div class="battle-stat-main">
+                                <span>法力回复</span>
+                                <span class="battle-stat-value" id="battle-stat-spiritRegen">0/秒</span>
+                            </div>
+                            <div class="battle-stat-formula hidden" id="battle-formula-spiritRegen"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="battle-stat-legend">
@@ -166,7 +225,6 @@
                                         +<span id="meditation-rate">0</span>/s
                                         <span id="meditation-bonus" style="color: #4CAF50; margin-left: 5px; display: none;"></span>
                                     </div>
-                                    <div id="formation-icon" style="display: none; color: #4CAF50; font-weight: bold; border: 1px solid #4CAF50; border-radius: 50%; width: 20px; height: 20px; text-align: center; line-height: 20px; font-size: 12px; margin-left: auto;">聚</div>
                                 </div>
                                 <div id="reiki-arrow" style="position: absolute; top: 0; right: 0; transform: translate(50%, -50%); color: #FF5252; font-weight: bold; display: none; font-size: 18px; text-shadow: 1px 1px 2px black;">⬆️</div>
                             </div>
@@ -178,6 +236,7 @@
                             <button id="forging-btn" style="background-color: #FF9800;">锻造</button>
                             <button id="smelting-btn" style="background-color: #FF5722;">熔炼</button>
                             <button id="formation-btn" style="background-color: #3F51B5; display: none;">阵法</button>
+                            <button id="spell-btn" style="background-color: #673AB7; display: none;">法术</button>
                             <button id="inventory-btn" style="background-color: #795548;">背包</button>
                             <button id="debug-btn" style="background-color: #607D8B;">调试功能</button>
                         </div>
@@ -190,6 +249,16 @@
                                 <div class="stat-card" data-stat="hp">
                                     <span class="stat-label">生命</span>
                                     <span class="stat-value" id="stat-hp">0</span>
+                                    <span class="stat-hint">ℹ️</span>
+                                </div>
+                                <div class="stat-card" data-stat="mana">
+                                    <span class="stat-label">法力</span>
+                                    <span class="stat-value" id="stat-mana">0</span>
+                                    <span class="stat-hint">ℹ️</span>
+                                </div>
+                                <div class="stat-card" data-stat="spiritualPower">
+                                    <span class="stat-label">灵力</span>
+                                    <span class="stat-value" id="stat-spiritualPower">0</span>
                                     <span class="stat-hint">ℹ️</span>
                                 </div>
                                 <div class="stat-card" data-stat="physique">
@@ -215,11 +284,6 @@
                                 <div class="stat-card" data-stat="defense">
                                     <span class="stat-label">防御</span>
                                     <span class="stat-value" id="stat-defense">0</span>
-                                    <span class="stat-hint">ℹ️</span>
-                                </div>
-                                <div class="stat-card" data-stat="spiritualPower">
-                                    <span class="stat-label">灵力</span>
-                                    <span class="stat-value" id="stat-spiritualPower">0</span>
                                     <span class="stat-hint">ℹ️</span>
                                 </div>
                                 <div class="stat-card" data-stat="speed">
@@ -357,6 +421,8 @@
                         <button class="tab-btn active" data-tab="wood">木制品</button>
                         <button class="tab-btn" data-tab="iron">铁制品</button>
                         <button class="tab-btn" data-tab="refined-iron">精铁制品</button>
+                        <button class="tab-btn" data-tab="spirit-iron">注灵铁制品</button>
+                        <button class="tab-btn" data-tab="spirit-refined-iron">注灵精铁制品</button>
                     </div>
                     <div class="forging-content">
                         <div id="content-wood" class="tab-content">
@@ -370,6 +436,14 @@
                         <div id="content-refined-iron" class="tab-content hidden">
                             <h2>精铁制品锻造</h2>
                             <div id="forging-list-refined-iron" class="upgrade-container"></div>
+                        </div>
+                        <div id="content-spirit-iron" class="tab-content hidden">
+                            <h2>注灵铁制品锻造</h2>
+                            <div id="forging-list-spirit-iron" class="upgrade-container"></div>
+                        </div>
+                        <div id="content-spirit-refined-iron" class="tab-content hidden">
+                            <h2>注灵精铁制品锻造</h2>
+                            <div id="forging-list-spirit-refined-iron" class="upgrade-container"></div>
                         </div>
                     </div>
                 </div>
@@ -397,6 +471,25 @@
                     </div>
                 </div>
                 <button id="btn-back-lobby-smelting" style="margin-top: 20px; background-color: #607D8B;">返回大厅</button>
+            </div>
+
+            <div id="spell-screen" class="screen hidden">
+                <h1>法术</h1>
+                
+                <!-- Equipped Spells Display -->
+                <div style="background: rgba(0,0,0,0.6); padding: 15px; border-radius: 10px; margin-bottom: 10px; width: 80%; max-width: 800px; display: flex; flex-direction: column; align-items: center;">
+                    <h3 style="margin: 0 0 10px 0; color: #ddd;">当前装备 (按键 1-3)</h3>
+                    <div id="equipped-spells-container" style="display: flex; gap: 30px; justify-content: center;">
+                        <!-- Slots injected by JS -->
+                    </div>
+                </div>
+
+                <div class="spell-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px; width: 80%; max-width: 800px; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px; height: 50%;">
+                    <div id="spell-list" class="upgrade-container" style="width: 100%; display: flex; justify-content: center; flex-wrap: wrap; overflow-y: auto;">
+                        <!-- Spell Items will be injected by JS -->
+                    </div>
+                </div>
+                <button id="btn-back-lobby-spell" style="margin-top: 20px; background-color: #607D8B;">返回大厅</button>
             </div>
 
             <div id="formation-screen" class="screen hidden">

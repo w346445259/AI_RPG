@@ -34,15 +34,15 @@ function createBuffElement(id, icon, borderColor) {
     const el = document.createElement('div');
     el.id = id;
     el.style.position = 'relative';
-    el.style.width = '40px';
-    el.style.height = '40px';
+    el.style.width = '30px';
+    el.style.height = '30px';
     el.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
     el.style.border = `1px solid ${borderColor}`;
     el.style.borderRadius = '5px';
     el.style.display = 'flex';
     el.style.justifyContent = 'center';
     el.style.alignItems = 'center';
-    el.style.fontSize = '24px';
+    el.style.fontSize = '16px';
     el.style.cursor = 'help';
     el.textContent = icon;
     return el;
@@ -69,27 +69,8 @@ export function updateBuffUI() {
     const activeFormationIds = new Set();
     const activeBuffIds = new Set();
 
-    // Render Active Formations (Combat only)
-    if (state.activeFormations) {
-        Object.keys(state.activeFormations).forEach(id => {
-            if (!state.activeFormations[id]) return;
-            const config = formationConfig[id];
-            if (!config || config.type !== 'combat') return;
-
-            const elementId = `buff-formation-${id}`;
-            activeFormationIds.add(elementId);
-
-            let buffEl = document.getElementById(elementId);
-            if (!buffEl) {
-                buffEl = createBuffElement(elementId, config.icon, '#FFD700');
-                formationBar.appendChild(buffEl);
-                
-                buffEl.addEventListener('mouseenter', (e) => showTooltip(e, `[阵法] ${config.name}\n${config.description}`));
-                buffEl.addEventListener('mousemove', updateTooltipPosition);
-                buffEl.addEventListener('mouseleave', hideTooltip);
-            }
-        });
-    }
+    // Render Active Formations (Combat only) - MOVED TO HUD (player-health-panel)
+    // if (state.activeFormations) { ... }
 
     // Render Active Buffs
     if (state.activeBuffs) {
@@ -119,7 +100,7 @@ export function updateBuffUI() {
 
                 buffEl.addEventListener('mouseenter', (e) => {
                     buffEl._isHovered = true;
-                    showTooltip(e, `${config.name}\n${config.description}\n剩余时间: ${Math.ceil(buff.duration)}s`);
+                    showTooltip(e, `${config.name}\n${config.description}\n剩余时间: ${Math.ceil(buff.duration / 1000)}s`);
                 });
                 buffEl.addEventListener('mousemove', updateTooltipPosition);
                 buffEl.addEventListener('mouseleave', () => {
@@ -132,13 +113,13 @@ export function updateBuffUI() {
 
             // Update Progress
             if (progressBar) {
-                const progress = buff.duration / buff.maxDuration;
+                const progress = Math.max(0, buff.duration / buff.maxDuration);
                 progressBar.style.width = `${progress * 100}%`;
             }
 
             // Update Tooltip if hovered
             if (buffEl._isHovered) {
-                updateTooltipText(`${config.name}\n${config.description}\n剩余时间: ${Math.ceil(buff.duration)}s`);
+                updateTooltipText(`${config.name}\n${config.description}\n剩余时间: ${Math.ceil(buff.duration / 1000)}s`);
             }
         });
     }

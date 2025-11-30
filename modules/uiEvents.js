@@ -2,7 +2,7 @@ import { state } from './state.js';
 import { 
     updateSpiritStonesDisplay, updatePlayerStatsDisplay, updateForgingUI, updateInventoryUI, 
     updateLevelSelectionUI, updateCultivationUI, updateSmeltingUI, updateFormationUI, showNotification,
-    setupStatInteractions, updateBuffUI
+    setupStatInteractions, updateBuffUI, updateSpellUI, updateSpellBar
 } from './ui.js';
 import { 
     addExperience, attemptBodyRefiningBreakthrough, updateMeditation
@@ -51,6 +51,9 @@ export function setupUIEvents() {
     const inventoryScreen = document.getElementById('inventory-screen');
     const inventoryBtn = document.getElementById('inventory-btn');
     const btnInventoryBackLobby = document.getElementById('btn-inventory-back-lobby');
+    const spellScreen = document.getElementById('spell-screen');
+    const spellBtn = document.getElementById('spell-btn');
+    const btnBackLobbySpell = document.getElementById('btn-back-lobby-spell');
     const debugScreen = document.getElementById('debug-screen');
     const debugBtn = document.getElementById('debug-btn');
     const btnCloseDebug = document.getElementById('btn-close-debug');
@@ -205,8 +208,34 @@ export function setupUIEvents() {
     if (clearDataBtn) {
         clearDataBtn.addEventListener('click', () => {
             if (confirm('确定要清除所有存档数据吗？这将重置游戏进度！')) {
-                localStorage.clear();
-                location.reload();
+                // Explicitly remove all known keys to ensure clean reset
+                const keysToRemove = [
+                    'totalGold', 
+                    'totalSpiritStones', 
+                    'hasUnlockedSpiritStones',
+                    'totalReiki', 
+                    'spiritualPower', 
+                    'totalExp',
+                    'cultivationStage', 
+                    'bodyStrengtheningLevel',
+                    'equippedWeaponId', 
+                    'inventory', 
+                    'ownedWeapons',
+                    'learnedSpells', 
+                    'equippedSpells', 
+                    'activeFormations',
+                    'maxCombatFormations', 
+                    'maxUnlockedLevel', 
+                    'lastSaveTime'
+                ];
+                
+                keysToRemove.forEach(key => localStorage.removeItem(key));
+                localStorage.clear(); // Clear anything else
+                
+                // Force reload
+                setTimeout(() => {
+                    location.reload();
+                }, 50);
             }
         });
     }
@@ -219,6 +248,7 @@ export function setupUIEvents() {
         state.player.maxHp = stats.maxHp;
         state.player.hp = stats.maxHp;
         updatePlayerStatsDisplay();
+        updateSpellUI();
     });
 
     btnBackLobbyForging.addEventListener('click', () => {
@@ -265,6 +295,8 @@ export function setupUIEvents() {
         updateSpiritStonesDisplay();
         updatePlayerStatsDisplay();
         updateBuffUI();
+        updateSpellUI();
+        updateSpellBar();
         const stats = getPlayerStats();
         state.player.x = state.canvas.width * 0.7;
         state.player.y = state.canvas.height * 0.6;
@@ -300,6 +332,8 @@ export function setupUIEvents() {
         updateSpiritStonesDisplay();
         updatePlayerStatsDisplay();
         updateBuffUI();
+        updateSpellUI();
+        updateSpellBar();
         const stats = getPlayerStats();
         state.player.x = state.canvas.width * 0.7;
         state.player.y = state.canvas.height * 0.6;
@@ -369,6 +403,7 @@ export function setupUIEvents() {
         updateSpiritStonesDisplay();
         updatePlayerStatsDisplay();
         updateBuffUI();
+        updateSpellBar();
         const stats = getPlayerStats();
         state.player.x = state.canvas.width * 0.7;
         state.player.y = state.canvas.height * 0.6;
@@ -429,5 +464,25 @@ export function setupUIEvents() {
         });
     });
 
+    if (spellBtn) {
+        spellBtn.addEventListener('click', () => {
+            state.gameState = 'SPELL';
+            startScreen.classList.add('hidden');
+            spellScreen.classList.remove('hidden');
+            updateSpellUI();
+            updateSpellBar();
+        });
+    }
+
+    if (btnBackLobbySpell) {
+        btnBackLobbySpell.addEventListener('click', () => {
+            state.gameState = 'LOBBY';
+            spellScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            updateSpellBar();
+        });
+    }
+
     setupStatInteractions();
+    updateSpellUI();
 }

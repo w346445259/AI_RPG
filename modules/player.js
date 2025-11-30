@@ -4,6 +4,28 @@ import { getPlayerStats } from './ui.js';
 import { handleMonsterDeath } from './monster.js';
 import { getActiveWeaponConfig } from './weaponUtils.js';
 
+export function takeDamage(amount) {
+    if (amount <= 0) return;
+    
+    let remainingDamage = amount;
+    
+    // Shield absorption
+    if (state.player.shield > 0) {
+        if (state.player.shield >= remainingDamage) {
+            state.player.shield -= remainingDamage;
+            remainingDamage = 0;
+        } else {
+            remainingDamage -= state.player.shield;
+            state.player.shield = 0;
+        }
+    }
+    
+    // Health damage
+    if (remainingDamage > 0) {
+        state.player.hp -= remainingDamage;
+    }
+}
+
 function rollCriticalDamage(baseDamage, stats) {
     let damage = Math.floor(baseDamage);
     let isCrit = false;
