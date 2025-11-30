@@ -93,6 +93,12 @@ export function attemptBodyRefiningBreakthrough() {
         return;
     }
 
+    // 锻体9阶不能突破到练气期
+    if (state.cultivationStage === 9) {
+        showNotification("锻体圆满，需寻找其他机缘方可突破。");
+        return;
+    }
+
     let cost = 0;
     let nextStage = state.cultivationStage + 1;
 
@@ -103,10 +109,6 @@ export function attemptBodyRefiningBreakthrough() {
     // 锻体1-8阶 -> 下一阶
     else if (state.cultivationStage < 9) {
         cost = bodyRefiningConfig.getCost(nextStage);
-    }
-    // 锻体9阶 -> 练气期 (Stage 10)
-    else if (state.cultivationStage === 9) {
-        cost = realmBaseConfig[10].cost;
     }
 
     if (state.totalExp >= cost) {

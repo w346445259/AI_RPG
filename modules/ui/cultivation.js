@@ -244,26 +244,13 @@ export function updateBodyRefiningUI() {
             </div>
         `;
     } else {
-        // 锻体9阶，准备突破到练气期
-        const nextRealmConfig = realmBaseConfig[10]; // 练气期
-        const cost = nextRealmConfig.cost; // 5000 气血
-        const bonus = nextRealmConfig.stats;
-
-        const percentage = Math.min(100, (state.totalExp / cost) * 100);
-        const canBreakthrough = state.totalExp >= cost;
-
+        // 锻体9阶（圆满），无法直接突破到练气期
         html += `
-            <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; border: 1px solid #03A9F4;">
-                <h3 style="color: #03A9F4;">突破: 练气期</h3>
-                <p>引气入体，踏入仙途。</p>
-                <p>练气加成: 力量 +${bonus.strength}, 敏捷 +${bonus.agility}, 悟性 +${bonus.comprehension}, 体魄 +${bonus.physique}</p>
-                <p>当前气血: ${state.totalExp} / ${cost}</p>
-                <div style="width: 100%; background: #555; height: 10px; border-radius: 5px; margin-top: 5px;">
-                    <div style="width: ${percentage}%; background: #03A9F4; height: 100%; border-radius: 5px;"></div>
-                </div>
-                <button onclick="window.attemptBodyRefiningBreakthrough()" style="margin-top: 15px; background-color: ${canBreakthrough ? '#03A9F4' : '#555'};" ${canBreakthrough ? '' : 'disabled'}>
-                    ${canBreakthrough ? `突破至练气期 (消耗 ${cost} 气血)` : '气血不足'}
-                </button>
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255,215,0,0.1); border-radius: 8px; border: 1px solid gold;">
+                <h3 style="color: gold;">锻体圆满</h3>
+                <p>肉身已臻化境，但无法直接突破至练气期。</p>
+                <p style="color: #FFD700; font-weight: bold;">需寻找其他机缘方可突破。</p>
+                <p style="color: #888; font-size: 0.9em; margin-top: 10px;">（具体突破方式后续版本开放）</p>
             </div>
         `;
     }
