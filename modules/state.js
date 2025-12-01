@@ -69,6 +69,15 @@ export const state = {
     techniqueStates: {}, // 功法修炼状态 { techniqueId: { success: boolean, attempts: number } }
     successfulTechniqueId: null, // 已成功修炼的功法ID（同阶只能成功一个）
     
+    // Elemental attack attributes (金木水火土)
+    attackElements: {
+        metal: false,
+        wood: false,
+        water: false,
+        fire: false,
+        earth: false
+    },
+    
     // Input
     keys: {},
     mouse: { x: 0, y: 0 },
@@ -129,4 +138,13 @@ export function initState() {
     // Initialize technique state
     state.techniqueStates = JSON.parse(localStorage.getItem('techniqueStates')) || {};
     state.successfulTechniqueId = parseInt(localStorage.getItem('successfulTechniqueId')) || null;
+
+    // Initialize elemental attack attributes
+    state.attackElements = JSON.parse(localStorage.getItem('attackElements')) || {
+        metal: false,
+        wood: false,
+        water: false,
+        fire: false,
+        earth: false
+    };
 }

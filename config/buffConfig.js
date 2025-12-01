@@ -114,5 +114,46 @@ export const buffConfig = {
         type: "stat_flat",
         stat: "hpRegen",
         value: 10
+    },
+    // Elemental attack imbue buffs (金木水火土)
+    201: {
+        id: 201,
+        name: "金灵附攻",
+        icon: "🪙",
+        description: "短时间内为攻击附加金属性。",
+        type: "attack_element",
+        elements: ['metal']
+    },
+    202: {
+        id: 202,
+        name: "木灵附攻",
+        icon: "🌱",
+        description: "短时间内为攻击附加木属性。",
+        type: "attack_element",
+        elements: ['wood']
+    },
+    203: {
+        id: 203,
+        name: "水灵附攻",
+        icon: "💧",
+        description: "短时间内为攻击附加水属性。",
+        type: "attack_element",
+        elements: ['water']
+    },
+    204: {
+        id: 204,
+        name: "火灵附攻",
+        icon: "🔥",
+        description: "短时间内为攻击附加火属性。",
+        type: "attack_element",
+        elements: ['fire']
+    },
+    205: {
+        id: 205,
+        name: "土灵附攻",
+        icon: "🪨",
+        description: "短时间内为攻击附加土属性。",
+        type: "attack_element",
+        elements: ['earth']
     }
 };

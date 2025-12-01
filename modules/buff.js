@@ -17,6 +17,27 @@ export function applyBuff(buffId, duration, customValue = null) {
         state.player.maxShield = Math.max((state.player.maxShield || 0), state.player.shield);
     }
 
+    // Handle elemental attack toggle on apply
+    if (config.type === 'attack_element' && Array.isArray(config.elements)) {
+        if (!state.attackElements) {
+            state.attackElements = {
+                metal: false,
+                wood: false,
+                water: false,
+                fire: false,
+                earth: false
+            };
+        }
+        config.elements.forEach(el => {
+            if (el === 'metal') state.attackElements.metal = true;
+            if (el === 'wood') state.attackElements.wood = true;
+            if (el === 'water') state.attackElements.water = true;
+            if (el === 'fire') state.attackElements.fire = true;
+            if (el === 'earth') state.attackElements.earth = true;
+        });
+        // Elemental imbues are temporary combat effects; do not persist to localStorage
+    }
+
     const existingBuff = state.activeBuffs.find(b => b.id === buffId);
     if (existingBuff) {
         existingBuff.duration = duration;
@@ -57,6 +78,54 @@ export function applyQueuedBattleBuffs() {
     state.pendingBattleBuffs = {};
 }
 
+export function clearAllBuffs() {
+    // Revert effects of all active buffs similar to updateBuffs expiration
+    if (state.activeBuffs && state.activeBuffs.length > 0) {
+        state.activeBuffs.forEach(buff => {
+            const config = buffConfig[buff.id];
+            if (!config) return;
+
+            if (config.type === 'shield_add') {
+                const removeValue = buff.value !== undefined ? buff.value : config.value;
+                state.player.shield = Math.max(0, (state.player.shield || 0) - removeValue);
+            }
+
+            if (config.type === 'attack_element' && Array.isArray(config.elements)) {
+                if (!state.attackElements) {
+                    state.attackElements = {
+                        metal: false,
+                        wood: false,
+                        water: false,
+                        fire: false,
+                        earth: false
+                    };
+                }
+                config.elements.forEach(el => {
+                    if (el === 'metal') state.attackElements.metal = false;
+                    if (el === 'wood') state.attackElements.wood = false;
+                    if (el === 'water') state.attackElements.water = false;
+                    if (el === 'fire') state.attackElements.fire = false;
+                    if (el === 'earth') state.attackElements.earth = false;
+                });
+            }
+        });
+    }
+
+    // Ensure elemental flags are fully reset even if no active buff remains
+    if (state.attackElements) {
+        state.attackElements.metal = false;
+        state.attackElements.wood = false;
+        state.attackElements.water = false;
+        state.attackElements.fire = false;
+        state.attackElements.earth = false;
+    }
+
+    state.activeBuffs = [];
+
+    updateBuffUI();
+    updatePlayerStatsDisplay();
+}
+
 export function updateBuffs(dt) {
     if (state.activeBuffs.length === 0) return;
 
@@ -67,9 +136,29 @@ export function updateBuffs(dt) {
         if (buff.duration <= 0) {
             // Handle expiration effects
             const config = buffConfig[buff.id];
-            if (config && config.type === 'shield_add') {
-                const removeValue = buff.value !== undefined ? buff.value : config.value;
-                state.player.shield = Math.max(0, (state.player.shield || 0) - removeValue);
+            if (config) {
+                if (config.type === 'shield_add') {
+                    const removeValue = buff.value !== undefined ? buff.value : config.value;
+                    state.player.shield = Math.max(0, (state.player.shield || 0) - removeValue);
+                }
+                if (config.type === 'attack_element' && Array.isArray(config.elements)) {
+                    if (!state.attackElements) {
+                        state.attackElements = {
+                            metal: false,
+                            wood: false,
+                            water: false,
+                            fire: false,
+                            earth: false
+                        };
+                    }
+                    config.elements.forEach(el => {
+                        if (el === 'metal') state.attackElements.metal = false;
+                        if (el === 'wood') state.attackElements.wood = false;
+                        if (el === 'water') state.attackElements.water = false;
+                        if (el === 'fire') state.attackElements.fire = false;
+                        if (el === 'earth') state.attackElements.earth = false;
+                    });
+                }
             }
 
             state.activeBuffs.splice(i, 1);

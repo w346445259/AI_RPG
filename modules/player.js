@@ -38,13 +38,29 @@ function rollCriticalDamage(baseDamage, stats) {
     return { damage, isCrit };
 }
 
+// Map current player elemental attack attributes to a floating damage text color
+function getPlayerElementDamageColor(isCrit) {
+    const elements = state.attackElements;
+    if (elements) {
+        const { metal, wood, water, fire, earth } = elements;
+        if (fire) return '#FF5722';      // Fire: orange-red
+        if (water) return '#00BFFF';     // Water: bright blue
+        if (wood) return '#4CAF50';      // Wood: green
+        if (metal) return '#F0E68C';     // Metal: light gold
+        if (earth) return '#BCAAA4';     // Earth: brownish
+    }
+    // No elemental attack: keep original colors
+    return isCrit ? '#FFD700' : '#fff';
+}
+
 function pushDamageFloatingText(target, damage, isCrit) {
+    const color = getPlayerElementDamageColor(isCrit);
     state.floatingTexts.push({
         x: target.x,
         y: target.y - 20,
         text: isCrit ? `暴击 -${damage}` : `-${damage}`,
         life: isCrit ? 0.8 : 0.5,
-        color: isCrit ? '#FFD700' : '#fff',
+        color,
         strokeStyle: isCrit ? '#FF4500' : 'black',
         lineWidth: isCrit ? 4 : 3,
         fontSize: isCrit ? 30 : 24,
@@ -172,8 +188,33 @@ export function updateShooting(timestamp) {
                         }
                     }
 
-                    const stats = getPlayerStats();
-                    const baseDamage = stats.strength * weapon.damageMultiplier;
+                    // Base physical damage
+                    let baseDamage = stats.strength * weapon.damageMultiplier;
+
+                    // Apply elemental attack percentage bonus: if multiple elements are active,
+                    // only the highest current elemental attack bonus is used.
+                    if (state.attackElements) {
+                        const { metal, wood, water, fire, earth } = state.attackElements;
+                        let maxElementBonus = 0;
+                        if (metal && stats.metalAttack && stats.metalAttack > maxElementBonus) {
+                            maxElementBonus = stats.metalAttack;
+                        }
+                        if (wood && stats.woodAttack && stats.woodAttack > maxElementBonus) {
+                            maxElementBonus = stats.woodAttack;
+                        }
+                        if (water && stats.waterAttack && stats.waterAttack > maxElementBonus) {
+                            maxElementBonus = stats.waterAttack;
+                        }
+                        if (fire && stats.fireAttack && stats.fireAttack > maxElementBonus) {
+                            maxElementBonus = stats.fireAttack;
+                        }
+                        if (earth && stats.earthAttack && stats.earthAttack > maxElementBonus) {
+                            maxElementBonus = stats.earthAttack;
+                        }
+                        if (maxElementBonus > 0) {
+                            baseDamage *= (1 + maxElementBonus);
+                        }
+                    }
 
                     targetsToHit.forEach(t => {
                         const { damage, isCrit } = rollCriticalDamage(baseDamage, stats);
@@ -226,7 +267,41 @@ export function updateShooting(timestamp) {
 function shootTarget(target, weapon) {
     if (!target) return;
     const stats = getPlayerStats();
-    const baseDamage = stats.strength * weapon.damageMultiplier;
+    let baseDamage = stats.strength * weapon.damageMultiplier;
+
+    // Apply elemental attack percentage bonus for bullets: if multiple elements are active,
+    // only the highest current elemental attack bonus is used.
+    if (state.attackElements) {
+        const { metal, wood, water, fire, earth } = state.attackElements;
+        let maxElementBonus = 0;
+        if (metal && stats.metalAttack && stats.metalAttack > maxElementBonus) {
+            maxElementBonus = stats.metalAttack;
+        }
+        if (wood && stats.woodAttack && stats.woodAttack > maxElementBonus) {
+            maxElementBonus = stats.woodAttack;
+        }
+        if (water && stats.waterAttack && stats.waterAttack > maxElementBonus) {
+            maxElementBonus = stats.waterAttack;
+        }
+        if (fire && stats.fireAttack && stats.fireAttack > maxElementBonus) {
+            maxElementBonus = stats.fireAttack;
+        }
+        if (earth && stats.earthAttack && stats.earthAttack > maxElementBonus) {
+            maxElementBonus = stats.earthAttack;
+        }
+        if (maxElementBonus > 0) {
+            baseDamage *= (1 + maxElementBonus);
+        }
+    }
+
+    // Snapshot current elemental attack attributes onto bullets
+    const elements = state.attackElements ? { ...state.attackElements } : {
+        metal: false,
+        wood: false,
+        water: false,
+        fire: false,
+        earth: false
+    };
 
     if (weapon.type === 'bounce') {
         state.bullets.push({
@@ -243,7 +318,8 @@ function shootTarget(target, weapon) {
             radius: 5,
             color: 'cyan',
             critChance: stats.critChance,
-            critDamage: stats.critDamage
+            critDamage: stats.critDamage,
+            elements
         });
     } else {
         const dx = target.x - state.player.x;
@@ -285,7 +361,8 @@ function shootTarget(target, weapon) {
                 damage: baseDamage,
                 hitIds: [],
                 critChance: stats.critChance,
-                critDamage: stats.critDamage
+                critDamage: stats.critDamage,
+                elements
             });
         }
     }

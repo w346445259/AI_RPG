@@ -23,6 +23,13 @@ export function getPlayerStats() {
     let bonusCultivationSpeed = 0;
     let bonusReikiRegen = 0;
 
+    // Elemental attack flat bonuses (percentage points)
+    let bonusMetalAttack = 0;
+    let bonusWoodAttack = 0;
+    let bonusWaterAttack = 0;
+    let bonusFireAttack = 0;
+    let bonusEarthAttack = 0;
+
     // 境界基础加成 (Realm Base Stats)
     for (const stageStr in realmBaseConfig) {
         const stageThreshold = parseInt(stageStr);
@@ -79,6 +86,11 @@ export function getPlayerStats() {
         const weapon = weaponConfig[state.equippedWeaponId];
         if (weapon && weapon.stats) {
             if (weapon.stats.spellPower) bonusSpellPower += weapon.stats.spellPower;
+            if (weapon.stats.metalAttack) bonusMetalAttack += weapon.stats.metalAttack;
+            if (weapon.stats.woodAttack) bonusWoodAttack += weapon.stats.woodAttack;
+            if (weapon.stats.waterAttack) bonusWaterAttack += weapon.stats.waterAttack;
+            if (weapon.stats.fireAttack) bonusFireAttack += weapon.stats.fireAttack;
+            if (weapon.stats.earthAttack) bonusEarthAttack += weapon.stats.earthAttack;
             // Add other weapon stats here if needed in the future
         }
     }
@@ -114,6 +126,13 @@ export function getPlayerStats() {
     let finalSoulAmp = (playerConfig.soulAmplification || 0) + bonusSoulAmp;
     let finalSpellPower = (playerConfig.spellPower || 0) + bonusSpellPower;
 
+    // Elemental attack final percentages (base + flat bonuses)
+    let finalMetalAttack = (playerConfig.metalAttack || 0) + bonusMetalAttack;
+    let finalWoodAttack = (playerConfig.woodAttack || 0) + bonusWoodAttack;
+    let finalWaterAttack = (playerConfig.waterAttack || 0) + bonusWaterAttack;
+    let finalFireAttack = (playerConfig.fireAttack || 0) + bonusFireAttack;
+    let finalEarthAttack = (playerConfig.earthAttack || 0) + bonusEarthAttack;
+
     // Mana Calculation
     // 1 Spiritual Power = 10 Max Mana + 0.1 Mana Regen
     let maxMana = (finalSpiritualPower * 10);
@@ -130,7 +149,12 @@ export function getPlayerStats() {
         soulAmp: 0,
         spiritualPower: 0,
         manaRegen: 0,
-        spellPower: 0
+        spellPower: 0,
+        metalAttack: 0,
+        woodAttack: 0,
+        waterAttack: 0,
+        fireAttack: 0,
+        earthAttack: 0
     });
 
     const multiplierBuckets = {
@@ -169,6 +193,11 @@ export function getPlayerStats() {
             if (config.stat === 'spiritualPower') finalSpiritualPower += value;
             if (config.stat === 'manaRegen') manaRegen += value;
             if (config.stat === 'spellPower') finalSpellPower += value;
+            if (config.stat === 'metalAttack') finalMetalAttack += value;
+            if (config.stat === 'woodAttack') finalWoodAttack += value;
+            if (config.stat === 'waterAttack') finalWaterAttack += value;
+            if (config.stat === 'fireAttack') finalFireAttack += value;
+            if (config.stat === 'earthAttack') finalEarthAttack += value;
         } else if (config.type === 'stat_multiplier') {
             if (config.stat === 'critDamage' && source === 'affix') {
                 addAdditiveBonus('critDamage', value);
@@ -225,6 +254,11 @@ export function getPlayerStats() {
         finalSpiritualPower *= bucketValue(bucket, 'spiritualPower');
         manaRegen *= bucketValue(bucket, 'manaRegen');
         finalSpellPower *= bucketValue(bucket, 'spellPower');
+        finalMetalAttack *= bucketValue(bucket, 'metalAttack');
+        finalWoodAttack *= bucketValue(bucket, 'woodAttack');
+        finalWaterAttack *= bucketValue(bucket, 'waterAttack');
+        finalFireAttack *= bucketValue(bucket, 'fireAttack');
+        finalEarthAttack *= bucketValue(bucket, 'earthAttack');
     };
 
     // 记录乘算前的基础值 (Config + Realm + Flat Buffs)
@@ -239,7 +273,12 @@ export function getPlayerStats() {
         soulAmp: finalSoulAmp,
         spiritualPower: finalSpiritualPower,
         manaRegen: manaRegen,
-        spellPower: finalSpellPower
+        spellPower: finalSpellPower,
+        metalAttack: finalMetalAttack,
+        woodAttack: finalWoodAttack,
+        waterAttack: finalWaterAttack,
+        fireAttack: finalFireAttack,
+        earthAttack: finalEarthAttack
     };
 
     applyBucket('general');
@@ -283,7 +322,12 @@ export function getPlayerStats() {
         maxHp: buildFormula({ base: Math.floor(maxHp) }),
         spiritualPower: buildFormula({ base: baseBeforeLinear.spiritualPower, general: getBucketStat('general', 'spiritualPower'), formation: getBucketStat('formation', 'spiritualPower'), affix: getBucketStat('affix', 'spiritualPower') }),
         manaRegen: buildFormula({ base: baseBeforeLinear.manaRegen, general: getBucketStat('general', 'manaRegen'), formation: getBucketStat('formation', 'manaRegen'), affix: getBucketStat('affix', 'manaRegen') }),
-        spellPower: buildFormula({ base: baseBeforeLinear.spellPower, general: getBucketStat('general', 'spellPower'), formation: getBucketStat('formation', 'spellPower'), affix: getBucketStat('affix', 'spellPower') })
+        spellPower: buildFormula({ base: baseBeforeLinear.spellPower, general: getBucketStat('general', 'spellPower'), formation: getBucketStat('formation', 'spellPower'), affix: getBucketStat('affix', 'spellPower') }),
+        metalAttack: buildFormula({ base: baseBeforeLinear.metalAttack, general: getBucketStat('general', 'metalAttack'), formation: getBucketStat('formation', 'metalAttack'), affix: getBucketStat('affix', 'metalAttack') }),
+        woodAttack: buildFormula({ base: baseBeforeLinear.woodAttack, general: getBucketStat('general', 'woodAttack'), formation: getBucketStat('formation', 'woodAttack'), affix: getBucketStat('affix', 'woodAttack') }),
+        waterAttack: buildFormula({ base: baseBeforeLinear.waterAttack, general: getBucketStat('general', 'waterAttack'), formation: getBucketStat('formation', 'waterAttack'), affix: getBucketStat('affix', 'waterAttack') }),
+        fireAttack: buildFormula({ base: baseBeforeLinear.fireAttack, general: getBucketStat('general', 'fireAttack'), formation: getBucketStat('formation', 'fireAttack'), affix: getBucketStat('affix', 'fireAttack') }),
+        earthAttack: buildFormula({ base: baseBeforeLinear.earthAttack, general: getBucketStat('general', 'earthAttack'), formation: getBucketStat('formation', 'earthAttack'), affix: getBucketStat('affix', 'earthAttack') })
     };
 
     const normalizedCritChance = Math.min(1, Math.max(0, finalCritChance));
@@ -310,6 +354,12 @@ export function getPlayerStats() {
         spellPower: finalSpellPower,
         cultivationSpeed: bonusCultivationSpeed, // 修炼速度加成
         reikiRegen: bonusReikiRegen, // 灵气回复加成
+        // Elemental attack percentage bonuses
+        metalAttack: finalMetalAttack,
+        woodAttack: finalWoodAttack,
+        waterAttack: finalWaterAttack,
+        fireAttack: finalFireAttack,
+        earthAttack: finalEarthAttack,
         statFormulas
     };
 }

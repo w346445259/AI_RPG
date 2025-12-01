@@ -14,6 +14,14 @@ export const playerConfig = {
     critDamage: 2.0, // 基础暴击伤害倍率 (200%)
     soulAmplification: 0, // 灵魂增幅 (额外灵魂获取百分比)
     spellPower: 0, // 法术强度 (百分比加成，0 = +0%)
+
+    // Elemental attack bonuses (percentage, 0 = +0%)
+    metalAttack: 0,
+    woodAttack: 0,
+    waterAttack: 0,
+    fireAttack: 0,
+    earthAttack: 0,
+
     spiritualPower: 10, // 基础灵力 (1灵力 = 10法力 + 0.1回蓝/秒)
     spiritRegen: 0, // 基础法力回复 (每秒) - 由灵力属性决定
     

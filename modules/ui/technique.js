@@ -88,13 +88,33 @@ export function updateTechniqueUI() {
         return;
     }
     
+    // 当前阶位是否已经有成功修炼的功法（用于隐藏同阶功法成功率）
+    const hasSuccessInCurrentGrade = allTechniques.some(tech => {
+        const techniqueState = state.techniqueStates[tech.id];
+        return techniqueState && techniqueState.success;
+    });
+    
+    // 将已成功修炼的功法排在前面
+    const sortedTechniques = [...allTechniques].sort((a, b) => {
+        const aState = state.techniqueStates[a.id];
+        const bState = state.techniqueStates[b.id];
+        const aSuccess = aState && aState.success;
+        const bSuccess = bState && bState.success;
+        if (aSuccess && !bSuccess) return -1;
+        if (!aSuccess && bSuccess) return 1;
+        return a.id - b.id;
+    });
+    
     // 显示当前等级的所有功法
-    allTechniques.forEach(technique => {
+    sortedTechniques.forEach(technique => {
         const techniqueState = state.techniqueStates[technique.id];
         const isSuccess = techniqueState && techniqueState.success;
         const attempts = techniqueState ? techniqueState.attempts : 0;
         const canContinue = canCultivateTechnique(technique, state.cultivationStage);
         const hasEnoughReiki = state.totalReiki >= technique.reikiCost;
+        
+        // 当前阶位已经有成功功法时，隐藏同阶功法成功率
+        const showSuccessRate = !hasSuccessInCurrentGrade;
         
         // 判断是否因为等级限制无法修炼
         const isGradeTooLow = successfulGradeLevel > 0 && technique.gradeLevel <= successfulGradeLevel && !isSuccess;
@@ -106,6 +126,10 @@ export function updateTechniqueUI() {
             successRate *= (1 + stats.cultivationSpeed);
         }
         successRate = Math.min(100, successRate * 100);
+        
+        const successRateHTML = showSuccessRate
+            ? `<div style="color: #aaa;">成功率: <span style="color: ${successRate >= 50 ? '#4CAF50' : '#FFA500'};">${successRate.toFixed(1)}%</span></div>`
+            : '<div style="color: #aaa;">已掌握同阶功法，不再显示成功率</div>';
         
         const div = document.createElement('div');
         div.className = 'technique-card';
@@ -176,7 +200,7 @@ export function updateTechniqueUI() {
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; font-size: 14px;">
                 <div style="color: #aaa;">消耗灵气: <span style="color: #00BFFF;">${technique.reikiCost}</span></div>
-                <div style="color: #aaa;">成功率: <span style="color: ${successRate >= 50 ? '#4CAF50' : '#FFA500'};">${successRate.toFixed(1)}%</span></div>
+                ${successRateHTML}
             </div>
             
             ${isSuccess ? `

@@ -102,5 +102,75 @@ export const spellConfig = {
         cooldown: 10000,
         damageMultiplier: 10.0,
         stunChance: 0.3
+    },
+    9: {
+        id: 9,
+        name: "金灵附攻",
+        description: "引动金灵之力，为你的攻击附加金属性。",
+        reqStage: 10, // 练气一层
+        cost: 300,
+        manaCost: 20,
+        icon: "🪙",
+        type: "buff",
+        cooldown: 5000,
+        duration: 10000,
+        grantElements: ['metal'],
+        buffId: 201
+    },
+    10: {
+        id: 10,
+        name: "木灵附攻",
+        description: "引动木灵之力，为你的攻击附加木属性。",
+        reqStage: 11, // 练气二层
+        cost: 300,
+        manaCost: 20,
+        icon: "🌱",
+        type: "buff",
+        cooldown: 5000,
+        duration: 10000,
+        grantElements: ['wood'],
+        buffId: 202
+    },
+    11: {
+        id: 11,
+        name: "水灵附攻",
+        description: "引动水灵之力，为你的攻击附加水属性。",
+        reqStage: 12, // 练气三层
+        cost: 300,
+        manaCost: 20,
+        icon: "💧",
+        type: "buff",
+        cooldown: 5000,
+        duration: 10000,
+        grantElements: ['water'],
+        buffId: 203
+    },
+    12: {
+        id: 12,
+        name: "火灵附攻",
+        description: "引动火灵之力，为你的攻击附加火属性。",
+        reqStage: 13, // 练气四层
+        cost: 300,
+        manaCost: 20,
+        icon: "🔥",
+        type: "buff",
+        cooldown: 5000,
+        duration: 10000,
+        grantElements: ['fire'],
+        buffId: 204
+    },
+    13: {
+        id: 13,
+        name: "土灵附攻",
+        description: "引动土灵之力，为你的攻击附加土属性。",
+        reqStage: 14, // 练气五层
+        cost: 300,
+        manaCost: 20,
+        icon: "🪨",
+        type: "buff",
+        cooldown: 5000,
+        duration: 10000,
+        grantElements: ['earth'],
+        buffId: 205
     }
 };

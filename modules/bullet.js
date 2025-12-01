@@ -17,13 +17,28 @@ function calculateBulletDamage(bullet) {
     return { damage: Math.floor(damage), isCrit };
 }
 
-function pushPlayerDamageText(monster, damage, isCrit) {
+// 根据元素返回伤害跳字颜色（有元素时用元素色，否则沿用原来的暴击/普通颜色）
+function getElementDamageColor(elements, isCrit) {
+    if (elements) {
+        const { metal, wood, water, fire, earth } = elements;
+        if (fire) return '#FF5722';      // 火：橙红
+        if (water) return '#00BFFF';     // 水：亮蓝
+        if (wood) return '#4CAF50';      // 木：绿色
+        if (metal) return '#F0E68C';     // 金：淡金
+        if (earth) return '#BCAAA4';     // 土：土黄
+    }
+    // 没有任何属性时，保持原来的颜色逻辑
+    return isCrit ? '#FFD700' : '#fff';
+}
+
+function pushPlayerDamageText(monster, damage, isCrit, elements) {
+    const color = getElementDamageColor(elements, isCrit);
     state.floatingTexts.push({
         x: monster.x,
         y: monster.y - 10,
         text: isCrit ? `暴击 -${damage}` : `-${damage}`,
         life: isCrit ? 0.8 : 0.5,
-        color: isCrit ? '#FFD700' : 'white',
+        color,
         strokeStyle: isCrit ? '#FF4500' : 'black',
         lineWidth: isCrit ? 4 : 3,
         fontSize: isCrit ? 30 : 24,
@@ -139,7 +154,7 @@ function handleBulletHit(bullet, monster, bulletIndex) {
     monster.hp -= actualDamage;
     bullet.hitIds.push(monster.id);
 
-    pushPlayerDamageText(monster, actualDamage, isCrit);
+    pushPlayerDamageText(monster, actualDamage, isCrit, bullet.elements);
 
     if (monster.hp <= 0) handleMonsterDeath(monster);
 }

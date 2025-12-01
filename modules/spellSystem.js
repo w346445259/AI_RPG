@@ -40,7 +40,32 @@ export function castSpell(slotIndex) {
     const spellPowerMultiplier = 1 + (stats.spellPower || 0);
     
     // Damage linked to spiritualPower instead of attack, amplified by spellPower
-    const damage = (stats.spiritualPower || 0) * (spell.damageMultiplier || 1) * spellPowerMultiplier;
+    let damage = (stats.spiritualPower || 0) * (spell.damageMultiplier || 1) * spellPowerMultiplier;
+
+    // Apply elemental attack percentage bonus for spells: if multiple elements are active,
+    // only the highest current elemental attack bonus is used.
+    if (state.attackElements) {
+        const { metal, wood, water, fire, earth } = state.attackElements;
+        let maxElementBonus = 0;
+        if (metal && stats.metalAttack && stats.metalAttack > maxElementBonus) {
+            maxElementBonus = stats.metalAttack;
+        }
+        if (wood && stats.woodAttack && stats.woodAttack > maxElementBonus) {
+            maxElementBonus = stats.woodAttack;
+        }
+        if (water && stats.waterAttack && stats.waterAttack > maxElementBonus) {
+            maxElementBonus = stats.waterAttack;
+        }
+        if (fire && stats.fireAttack && stats.fireAttack > maxElementBonus) {
+            maxElementBonus = stats.fireAttack;
+        }
+        if (earth && stats.earthAttack && stats.earthAttack > maxElementBonus) {
+            maxElementBonus = stats.earthAttack;
+        }
+        if (maxElementBonus > 0) {
+            damage *= (1 + maxElementBonus);
+        }
+    }
     
     let success = false;
     
@@ -60,14 +85,15 @@ export function castSpell(slotIndex) {
         spawnSpellProjectile(spell, targetX, targetY, damage);
         success = true;
     } else if (spell.type === 'buff') {
+        // Elemental imbue & other buffs are fully handled via buff system
         if (spell.buffId) {
-             let customValue = null;
-             // Calculate shield amount based on spiritualPower if multiplier exists
-             if (spell.shieldMultiplier) {
-                 customValue = (stats.spiritualPower || 0) * spell.shieldMultiplier * spellPowerMultiplier;
-             }
-             applyBuff(spell.buffId, spell.duration, customValue);
-             success = true;
+            let customValue = null;
+            // Calculate shield amount based on spiritualPower if multiplier exists
+            if (spell.shieldMultiplier) {
+                customValue = (stats.spiritualPower || 0) * spell.shieldMultiplier * spellPowerMultiplier;
+            }
+            applyBuff(spell.buffId, spell.duration, customValue);
+            success = true;
         }
     }
     
@@ -82,6 +108,14 @@ function spawnSpellProjectile(spell, targetX, targetY, damage) {
     const dy = targetY - state.player.y;
     const angle = Math.atan2(dy, dx);
     const speed = 500; // Default speed
+
+    const elements = state.attackElements ? { ...state.attackElements } : {
+        metal: false,
+        wood: false,
+        water: false,
+        fire: false,
+        earth: false
+    };
     
     state.bullets.push({
         x: state.player.x,
@@ -95,6 +129,7 @@ function spawnSpellProjectile(spell, targetX, targetY, damage) {
         penetration: spell.penetration || 0,
         hitIds: [],
         isEnemy: false,
-        type: 'penetrate' // Default to penetrate logic
+        type: 'penetrate', // Default to penetrate logic
+        elements
     });
 }

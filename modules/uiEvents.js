@@ -15,6 +15,7 @@ import { getPlayerStats } from './playerStats.js';
 import { itemConfig } from '../config/itemConfig.js';
 import { realmBaseConfig } from '../config/cultivationConfig.js';
 import { attemptSoulAwakening } from './affixSystem.js';
+import { clearAllBuffs } from './buff.js';
 
 export function setupUIEvents() {
     // UI Elements
@@ -241,8 +242,18 @@ export function setupUIEvents() {
     // Global screen switch helper used by cultivation/technique buttons
     window.switchScreen = (target) => {
         if (target === 'technique') {
-            state.gameState = 'TECHNIQUE';
+            // 先隐藏所有主界面，避免界面叠加
             if (startScreen) startScreen.classList.add('hidden');
+            if (levelSelectionScreen) levelSelectionScreen.classList.add('hidden');
+            if (upgradeScreen) upgradeScreen.classList.add('hidden');
+            if (forgingScreen) forgingScreen.classList.add('hidden');
+            if (smeltingScreen) smeltingScreen.classList.add('hidden');
+            if (formationScreen) formationScreen.classList.add('hidden');
+            if (inventoryScreen) inventoryScreen.classList.add('hidden');
+            if (spellScreen) spellScreen.classList.add('hidden');
+            if (gameOverScreen) gameOverScreen.classList.add('hidden');
+
+            state.gameState = 'TECHNIQUE';
             if (techniqueScreen) techniqueScreen.classList.remove('hidden');
             // 初始化功法界面，默认黄阶
             if (typeof window.switchTechniqueTab === 'function') {
@@ -296,7 +307,8 @@ export function setupUIEvents() {
                     'maxUnlockedLevel', 
                     'lastSaveTime',
                     'techniqueStates',
-                    'successfulTechniqueId'
+                    'successfulTechniqueId',
+                    'attackElements'
                 ];                
                 keysToRemove.forEach(key => localStorage.removeItem(key));
                 localStorage.clear(); // Clear anything else
@@ -316,6 +328,9 @@ export function setupUIEvents() {
         const stats = getPlayerStats();
         state.player.maxHp = stats.maxHp;
         state.player.hp = stats.maxHp;
+        // Clear all buffs and reset spell cooldowns when returning to lobby
+        clearAllBuffs();
+        state.spellCooldowns = {};
         updatePlayerStatsDisplay();
         updateSpellUI();
     });
@@ -361,6 +376,9 @@ export function setupUIEvents() {
         startScreen.classList.remove('hidden');
         pauseBtn.classList.add('hidden');
         levelClearedOverlay.classList.add('hidden');
+        // Clear all buffs and reset spell cooldowns when returning to lobby
+        clearAllBuffs();
+        state.spellCooldowns = {};
         updateSpiritStonesDisplay();
         updatePlayerStatsDisplay();
         updateBuffUI();
@@ -375,6 +393,8 @@ export function setupUIEvents() {
 
     overlayNextLevelBtn.addEventListener('click', () => {
         state.currentLevel++;
+        // 在进入下一关前清理所有 buff 和属性攻击，使每一局战斗互相独立
+        clearAllBuffs();
         // Reset state for next level
         state.monsters = [];
         state.bullets = [];
@@ -398,6 +418,9 @@ export function setupUIEvents() {
         levelClearedOverlay.classList.add('hidden');
         startScreen.classList.remove('hidden');
         pauseBtn.classList.add('hidden');
+        // Clear all buffs and reset spell cooldowns when returning to lobby
+        clearAllBuffs();
+        state.spellCooldowns = {};
         updateSpiritStonesDisplay();
         updatePlayerStatsDisplay();
         updateBuffUI();
@@ -469,6 +492,9 @@ export function setupUIEvents() {
         pauseBtn.classList.add('hidden');
         state.sessionSpiritStones = 0;
         state.sessionInventory = {};
+        // Clear all buffs and reset spell cooldowns when returning to lobby
+        clearAllBuffs();
+        state.spellCooldowns = {};
         updateSpiritStonesDisplay();
         updatePlayerStatsDisplay();
         updateBuffUI();
