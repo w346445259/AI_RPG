@@ -7,6 +7,8 @@ import {
 import { 
     addExperience, attemptBodyRefiningBreakthrough, updateMeditation
 } from './cultivation.js';
+import { cultivateTechnique } from './technique.js';
+import { updateTechniqueUI } from './ui/technique.js';
 import { initGame } from './gameLogic.js';
 import { addItem } from './inventory.js';
 import { getPlayerStats } from './playerStats.js';
@@ -45,6 +47,9 @@ export function setupUIEvents() {
     const smeltingScreen = document.getElementById('smelting-screen');
     const smeltingBtn = document.getElementById('smelting-btn');
     const btnBackLobbySmelting = document.getElementById('btn-back-lobby-smelting');
+    const techniqueScreen = document.getElementById('technique-screen');
+    const techniqueBtn = document.getElementById('technique-btn');
+    const btnBackLobbyTechnique = document.getElementById('btn-back-lobby-technique');
     const formationScreen = document.getElementById('formation-screen');
     const formationBtn = document.getElementById('formation-btn');
     const btnBackLobbyFormation = document.getElementById('btn-back-lobby-formation');
@@ -207,6 +212,55 @@ export function setupUIEvents() {
     window.openFormationScreen = openFormationScreen;
     window.openCombatFormationScreen = () => openFormationScreen('combat');
 
+    if (techniqueBtn) {
+        techniqueBtn.addEventListener('click', () => {
+            state.gameState = 'TECHNIQUE';
+            startScreen.classList.add('hidden');
+            techniqueScreen.classList.remove('hidden');
+            // 初始化页签为黄阶
+            if (typeof window.switchTechniqueTab === 'function') {
+                window.switchTechniqueTab('黄阶');
+            } else {
+                updateTechniqueUI();
+            }
+            updateTechniqueReikiDisplay();
+        });
+    }
+
+    // Helper function to update reiki display in technique screen
+    function updateTechniqueReikiDisplay() {
+        const techniqueReikiDisplay = document.getElementById('technique-reiki-display');
+        if (techniqueReikiDisplay) {
+            techniqueReikiDisplay.textContent = Math.floor(state.totalReiki);
+        }
+    }
+
+    // Export for use in technique.js
+    window.updateTechniqueReikiDisplay = updateTechniqueReikiDisplay;
+
+    // Global screen switch helper used by cultivation/technique buttons
+    window.switchScreen = (target) => {
+        if (target === 'technique') {
+            state.gameState = 'TECHNIQUE';
+            if (startScreen) startScreen.classList.add('hidden');
+            if (techniqueScreen) techniqueScreen.classList.remove('hidden');
+            // 初始化功法界面，默认黄阶
+            if (typeof window.switchTechniqueTab === 'function') {
+                window.switchTechniqueTab('黄阶');
+            } else {
+                updateTechniqueUI();
+            }
+            updateTechniqueReikiDisplay();
+        }
+    };
+
+    if (btnBackLobbyTechnique) {
+        btnBackLobbyTechnique.addEventListener('click', () => {
+            techniqueScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+        });
+    }
+
     inventoryBtn.addEventListener('click', () => {
         state.gameState = 'INVENTORY';
         startScreen.classList.add('hidden');
@@ -225,14 +279,13 @@ export function setupUIEvents() {
             if (confirm('确定要清除所有存档数据吗？这将重置游戏进度！')) {
                 // Explicitly remove all known keys to ensure clean reset
                 const keysToRemove = [
-                    'totalGold', 
-                    'totalSpiritStones', 
-                    'hasUnlockedSpiritStones',
+                    'totalGold',
+                    'totalSpiritStones',
+                    'hasUnlockedSpiritStones', 
                     'totalReiki', 
-                    'spiritualPower', 
-                    'totalExp',
+                    'totalExp', 
                     'cultivationStage', 
-                    'bodyStrengtheningLevel',
+                    'bodyStrengtheningLevel', 
                     'equippedWeaponId', 
                     'inventory', 
                     'ownedWeapons',
@@ -241,9 +294,10 @@ export function setupUIEvents() {
                     'activeFormations',
                     'maxCombatFormations', 
                     'maxUnlockedLevel', 
-                    'lastSaveTime'
-                ];
-                
+                    'lastSaveTime',
+                    'techniqueStates',
+                    'successfulTechniqueId'
+                ];                
                 keysToRemove.forEach(key => localStorage.removeItem(key));
                 localStorage.clear(); // Clear anything else
                 

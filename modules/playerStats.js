@@ -5,6 +5,8 @@ import { buffConfig } from '../config/buffConfig.js';
 import { formationConfig } from '../config/formationConfig.js';
 import { affixConfig } from '../config/affixConfig.js';
 import { weaponConfig } from '../config/weaponConfig.js';
+import { getTechniqueBonuses } from './technique.js';
+import { TechniqueBonus } from '../config/techniqueConfig.js';
 
 export function getPlayerStats() {
     let bonusStrength = 0;
@@ -18,6 +20,8 @@ export function getPlayerStats() {
     let bonusSoulAmp = 0;
     let bonusSpiritRegen = 0;
     let bonusSpellPower = 0;
+    let bonusCultivationSpeed = 0;
+    let bonusReikiRegen = 0;
 
     // 境界基础加成 (Realm Base Stats)
     for (const stageStr in realmBaseConfig) {
@@ -77,6 +81,21 @@ export function getPlayerStats() {
             if (weapon.stats.spellPower) bonusSpellPower += weapon.stats.spellPower;
             // Add other weapon stats here if needed in the future
         }
+    }
+
+    // Technique Bonuses (功法加成)
+    const techniqueBonuses = getTechniqueBonuses();
+    if (techniqueBonuses) {
+        if (techniqueBonuses[TechniqueBonus.STRENGTH]) bonusStrength += techniqueBonuses[TechniqueBonus.STRENGTH];
+        if (techniqueBonuses[TechniqueBonus.AGILITY]) bonusAgility += techniqueBonuses[TechniqueBonus.AGILITY];
+        if (techniqueBonuses[TechniqueBonus.PHYSIQUE]) bonusPhysique += techniqueBonuses[TechniqueBonus.PHYSIQUE];
+        if (techniqueBonuses[TechniqueBonus.COMPREHENSION]) bonusComprehension += techniqueBonuses[TechniqueBonus.COMPREHENSION];
+        if (techniqueBonuses[TechniqueBonus.DEFENSE]) bonusDefense += techniqueBonuses[TechniqueBonus.DEFENSE];
+        if (techniqueBonuses[TechniqueBonus.SPIRITUAL_POWER]) bonusSpiritualPower += techniqueBonuses[TechniqueBonus.SPIRITUAL_POWER];
+        if (techniqueBonuses[TechniqueBonus.CRIT_CHANCE]) bonusCritChance += techniqueBonuses[TechniqueBonus.CRIT_CHANCE];
+        if (techniqueBonuses[TechniqueBonus.CRIT_DAMAGE]) bonusCritDamage += techniqueBonuses[TechniqueBonus.CRIT_DAMAGE];
+        if (techniqueBonuses[TechniqueBonus.CULTIVATION_SPEED]) bonusCultivationSpeed += techniqueBonuses[TechniqueBonus.CULTIVATION_SPEED];
+        if (techniqueBonuses[TechniqueBonus.REIKI_REGEN]) bonusReikiRegen += techniqueBonuses[TechniqueBonus.REIKI_REGEN];
     }
 
     const totalPhysique = playerConfig.physique + bonusPhysique;
@@ -289,6 +308,8 @@ export function getPlayerStats() {
         manaRegen: Math.max(0, manaRegen),
         maxMana: maxMana,
         spellPower: finalSpellPower,
+        cultivationSpeed: bonusCultivationSpeed, // 修炼速度加成
+        reikiRegen: bonusReikiRegen, // 灵气回复加成
         statFormulas
     };
 }

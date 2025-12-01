@@ -18,6 +18,8 @@ import {
     calculateOfflineProgress, updateMeditation, strengthenBody, 
     attemptBodyRefiningBreakthrough, attemptQiBreakthrough 
 } from './modules/cultivation.js';
+import { cultivateTechnique } from './modules/technique.js';
+import { switchTechniqueTab } from './modules/ui/technique.js';
 import { setupUIEvents } from './modules/uiEvents.js';
 import { updateBuffs, applyBuff, queueBattleBuff } from './modules/buff.js';
 import { updateFormations } from './modules/formationLogic.js';
@@ -66,10 +68,14 @@ window.switchLevelTab = switchLevelTab;
 window.strengthenBody = strengthenBody;
 window.attemptBodyRefiningBreakthrough = attemptBodyRefiningBreakthrough;
 window.attemptQiBreakthrough = attemptQiBreakthrough;
+window.cultivateTechnique = cultivateTechnique;
+window.switchTechniqueTab = switchTechniqueTab;
 window.applyBuff = applyBuff;
 window.queueBattleBuff = queueBattleBuff;
 window.chooseAffixOption = selectAffix;
 window.skipAffixSelection = skipAffixSelection;
+window.updateCultivationUI = updateCultivationUI;
+window.updatePlayerStatsDisplay = updatePlayerStatsDisplay;
 window.smeltItem = (type) => {
     if (smeltItem(type)) {
         updateSmeltingUI();
@@ -89,11 +95,21 @@ window.openCultivationScreen = () => {
     
     updateCultivationUI();
     
+    // 根据当前境界自动跳转到对应的标签页
     let targetTab = 'mortal';
-    if (state.cultivationStage >= 1 && state.cultivationStage <= 9) targetTab = 'body-refining';
-    else if (state.cultivationStage >= 10) targetTab = 'qi-refining';
+    if (state.cultivationStage === 0) {
+        targetTab = 'mortal'; // 凡人
+    } else if (state.cultivationStage >= 1 && state.cultivationStage <= 9) {
+        targetTab = 'body-refining'; // 锻体期 (1-9阶)
+    } else if (state.cultivationStage >= 10 && state.cultivationStage <= 18) {
+        targetTab = 'qi-refining'; // 练气期 (10-18，即练气1-9层)
+    } else if (state.cultivationStage >= 19) {
+        targetTab = 'foundation'; // 筑基期及以上
+    }
     
-    const targetBtn = document.querySelector(`.tab-btn[data-tab="${targetTab}"]`);
+    // Only search tab button inside cultivation tabs to avoid matching level selection tabs
+    const cultivationTabs = upgradeScreen ? upgradeScreen.querySelector('.cultivation-tabs') : null;
+    const targetBtn = cultivationTabs ? cultivationTabs.querySelector(`.tab-btn[data-tab="${targetTab}"]`) : null;
     if (targetBtn) targetBtn.click();
 };
 

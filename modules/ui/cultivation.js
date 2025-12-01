@@ -1,5 +1,6 @@
 import { state } from '../state.js';
 import { bodyRefiningConfig, realmBaseConfig, qiCondensationConfig, bodyStrengtheningConfig } from '../../config/cultivationConfig.js';
+import { techniqueConfig } from '../../config/techniqueConfig.js';
 import { getExpThresholds } from '../utils.js';
 import { getPlayerStats } from '../playerStats.js';
 import { updateSpiritStonesDisplay } from './lobby.js';
@@ -142,9 +143,14 @@ export function updateQiCondensationUI() {
         
         const percentage = Math.min(100, (currentReiki / cost) * 100);
         
-        // 计算打坐效率
-        const stats = getPlayerStats();
-        const meditationRate = 0 + (stats.comprehension * 0.1); // 基础0点/秒 + 悟性 * 0.1
+        // 计算打坐效率（由功法决定）
+        let meditationRate = 0;
+        if (state.successfulTechniqueId) {
+            const technique = techniqueConfig[state.successfulTechniqueId];
+            if (technique && technique.reikiPerSecond) {
+                meditationRate = technique.reikiPerSecond;
+            }
+        }
         const canBreakthrough = currentReiki >= cost;
 
         cultivationHtml = `
@@ -152,7 +158,7 @@ export function updateQiCondensationUI() {
                 <h3 style="color: #2196F3;">练气修炼 (第 ${currentQiTier} 层)</h3>
                 <p>打坐吸纳天地灵气，凝聚灵力。</p>
                 <p>当前灵气: ${Math.floor(currentReiki)} / ${cost}</p>
-                <p>打坐效率: ${meditationRate.toFixed(2)} 灵气/秒 (受悟性加成)</p>
+                <p>打坐效率: ${meditationRate.toFixed(2)} 灵气/秒 (由功法决定)</p>
                 <div style="width: 100%; background: #555; height: 10px; border-radius: 5px; margin-top: 5px;">
                     <div style="width: ${percentage}%; background: #2196F3; height: 100%; border-radius: 5px;"></div>
                 </div>
@@ -244,13 +250,32 @@ export function updateBodyRefiningUI() {
             </div>
         `;
     } else {
-        // 锻体9阶（圆满），无法直接突破到练气期
+        // 锻体9阶（圆满），无法直接突破到练气期，需要修炼功法
         html += `
-            <div style="margin-top: 20px; padding: 15px; background: rgba(255,215,0,0.1); border-radius: 8px; border: 1px solid gold;">
-                <h3 style="color: gold;">锻体圆满</h3>
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255,215,0,0.1); border-radius: 8px; border: 1px solid gold; overflow: hidden;">
+                <h3 style="color: gold;">🎉 锻体圆满</h3>
                 <p>肉身已臻化境，但无法直接突破至练气期。</p>
-                <p style="color: #FFD700; font-weight: bold;">需寻找其他机缘方可突破。</p>
-                <p style="color: #888; font-size: 0.9em; margin-top: 10px;">（具体突破方式后续版本开放）</p>
+                <p style="color: #FFD700; font-weight: bold; margin: 15px 0;">需修炼功法方可突破！</p>
+                <div style="padding: 0 5px; margin: 0 -5px;">
+                    <button onclick="window.switchScreen('technique')" 
+                        style="
+                            width: 100%;
+                            padding: 12px 20px;
+                            background: linear-gradient(135deg, #FFD700, #FFA500);
+                            color: #000;
+                            border: none;
+                            border-radius: 8px;
+                            font-size: 16px;
+                            font-weight: bold;
+                            cursor: pointer;
+                            transition: all 0.3s;
+                            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+                        "
+                        onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(255, 215, 0, 0.6)';"
+                        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(255, 215, 0, 0.4)';">
+                        ⚡ 前往功法界面修炼 ⚡
+                    </button>
+                </div>
             </div>
         `;
     }

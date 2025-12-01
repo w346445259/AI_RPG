@@ -6,6 +6,7 @@ import { getPlayerStats } from '../playerStats.js';
 import { showNotification } from './common.js';
 import { bodyRefiningConfig, realmBaseConfig, qiCondensationConfig, bodyStrengtheningConfig } from '../../config/cultivationConfig.js';
 import { formationConfig } from '../../config/formationConfig.js';
+import { techniqueConfig } from '../../config/techniqueConfig.js';
 
 // UI Elements
 const spiritStonesDisplay = document.getElementById('gold-display');
@@ -64,9 +65,17 @@ export function updateReikiDisplay() {
     }
 
     // Check for Formation Icon & Rate Update
-    const stats = getPlayerStats();
-    const baseRate = 0; 
-    let gainPerSecond = baseRate + (stats.comprehension * 0.1);
+    // 灵气获取速率由功法决定
+    let gainPerSecond = 0;
+    
+    // 检查是否有修炼成功的功法
+    if (state.successfulTechniqueId) {
+        const technique = techniqueConfig[state.successfulTechniqueId];
+        if (technique && technique.reikiPerSecond) {
+            gainPerSecond = technique.reikiPerSecond;
+        }
+    }
+    
     let bonusPercent = 0;
     let isFormationActive = false;
 
@@ -118,6 +127,16 @@ export function updateSpiritStonesDisplay() {
             spiritStonesDisplay.textContent = `灵石: ${Math.floor(state.totalSpiritStones)}`;
         } else {
             spiritStonesDisplay.style.display = 'none';
+        }
+    }
+
+    // 功法按钮显示逻辑 (锻体圆满后显示)
+    const techniqueBtn = document.getElementById('technique-btn');
+    if (techniqueBtn) {
+        if (state.cultivationStage >= 9) {
+            techniqueBtn.style.display = 'inline-block';
+        } else {
+            techniqueBtn.style.display = 'none';
         }
     }
 
@@ -352,7 +371,7 @@ function showStatDetails(stat) {
             msg = `【敏捷】: ${stats.agility}。增加攻击速度。当前攻速加成: ${multiplier.toFixed(2)}倍 (极限5倍)。`;
             break;
         case 'comprehension':
-            msg = `【悟性】: ${stats.comprehension}。每点悟性增加0.1点/秒的灵气获取速率。`;
+            msg = `【悟性】: ${stats.comprehension}。影响功法修炼成功率，每点悟性提供10%的基础成功率。`;
             break;
         case 'defense':
             msg = `【防御】: ${stats.defense}。直接减少受到的伤害点数。`;

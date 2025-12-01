@@ -266,6 +266,20 @@ button:hover {
     border-left: 4px solid #4CAF50;
 }
 
+/* Technique Tab Buttons */
+.technique-tab-btn {
+    transition: all 0.3s ease;
+}
+
+.technique-tab-btn:hover {
+    transform: scale(1.08) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.technique-tab-btn.active {
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
 .cultivation-content {
     flex: 1;
     padding: 20px;

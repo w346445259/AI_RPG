@@ -6,6 +6,7 @@ import { updateFormationUI } from './ui/formation.js';
 import { getPlayerStats } from './playerStats.js';
 import { bodyRefiningConfig, qiCondensationConfig, bodyStrengtheningConfig, realmBaseConfig } from '../config/cultivationConfig.js';
 import { formationConfig } from '../config/formationConfig.js';
+import { techniqueConfig } from '../config/techniqueConfig.js';
 import { getExpThresholds, getStageName } from './utils.js';
 
 export function calculateOfflineProgress() {
@@ -22,9 +23,16 @@ export function calculateOfflineProgress() {
         
         // 至少离线 10 秒才计算
         if (effectiveOfflineSeconds > 10) {
-            const stats = getPlayerStats();
-            const baseRate = 0; 
-            let gainPerSecond = baseRate + (stats.comprehension * 0.1);
+            // 灵气获取速率由功法决定
+            let gainPerSecond = 0;
+            
+            // 检查是否有修炼成功的功法
+            if (state.successfulTechniqueId) {
+                const technique = techniqueConfig[state.successfulTechniqueId];
+                if (technique && technique.reikiPerSecond) {
+                    gainPerSecond = technique.reikiPerSecond;
+                }
+            }
             
             let totalGain = 0;
             let stonesConsumed = 0;
@@ -93,9 +101,13 @@ export function attemptBodyRefiningBreakthrough() {
         return;
     }
 
-    // 锻体9阶不能突破到练气期
+    // 锻体9阶不能突破到练气期，需要修炼功法
     if (state.cultivationStage === 9) {
-        showNotification("锻体圆满，需寻找其他机缘方可突破。");
+        showNotification("锻体圆满，请修炼功法以突破至练气期！");
+        // 打开功法界面
+        if (window.switchScreen) {
+            window.switchScreen('technique');
+        }
         return;
     }
 
@@ -180,11 +192,16 @@ export function updateMeditation(deltaTime) {
     if (state.cultivationStage < 10) return;
     
     // 计算灵气获取 (Reiki)
-    // 基础速率: 0点/秒
-    // 悟性加成: 1点悟性 + 0.1
-    const stats = getPlayerStats();
-    const baseRate = 0; 
-    let gainPerSecond = baseRate + (stats.comprehension * 0.1);
+    // 灵气获取速率由功法决定
+    let gainPerSecond = 0;
+    
+    // 检查是否有修炼成功的功法
+    if (state.successfulTechniqueId) {
+        const technique = techniqueConfig[state.successfulTechniqueId];
+        if (technique && technique.reikiPerSecond) {
+            gainPerSecond = technique.reikiPerSecond;
+        }
+    }
     
     // 检查聚灵阵
     const formationId = 1;

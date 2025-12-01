@@ -65,6 +65,10 @@ export const state = {
     runAffixPool: [], // 本局可选词缀池
     pendingBattleBuffs: {}, // { buffId: duration }
     
+    // Technique (功法)
+    techniqueStates: {}, // 功法修炼状态 { techniqueId: { success: boolean, attempts: number } }
+    successfulTechniqueId: null, // 已成功修炼的功法ID（同阶只能成功一个）
+    
     // Input
     keys: {},
     mouse: { x: 0, y: 0 },
@@ -121,4 +125,8 @@ export function initState() {
     state.soulCapacity = 20;
     state.soulReady = false;
     state.runAffixPool = [];
+    
+    // Initialize technique state
+    state.techniqueStates = JSON.parse(localStorage.getItem('techniqueStates')) || {};
+    state.successfulTechniqueId = parseInt(localStorage.getItem('successfulTechniqueId')) || null;
 }

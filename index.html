@@ -235,6 +235,7 @@
                             <button id="upgrade-btn" style="background-color: #9C27B0;">修炼</button>
                             <button id="forging-btn" style="background-color: #FF9800;">锻造</button>
                             <button id="smelting-btn" style="background-color: #FF5722;">熔炼</button>
+                            <button id="technique-btn" style="background-color: #FFD700; display: none;">功法</button>
                             <button id="formation-btn" style="background-color: #3F51B5; display: none;">阵法</button>
                             <button id="spell-btn" style="background-color: #673AB7; display: none;">法术</button>
                             <button id="inventory-btn" style="background-color: #795548;">背包</button>
@@ -490,6 +491,23 @@
                     </div>
                 </div>
                 <button id="btn-back-lobby-spell" style="margin-top: 20px; background-color: #607D8B;">返回大厅</button>
+            </div>
+
+            <div id="technique-screen" class="screen hidden">
+                <h1>功法</h1>
+                <div style="color: #00ffff; font-size: 18px; margin-bottom: 15px;">当前灵气: <span id="technique-reiki-display">0</span></div>
+                <div class="technique-container" style="display: flex; flex-direction: column; align-items: center; width: 80%; max-width: 900px; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px; height: 60%; overflow-y: auto;">
+                    <div class="technique-tabs" style="display: flex; gap: 15px; margin-bottom: 20px; width: 100%; justify-content: center;">
+                        <button class="technique-tab-btn active" data-grade="黄阶" onclick="window.switchTechniqueTab('黄阶')" style="padding: 10px 20px; background: #CD853F; border: none; border-radius: 5px; color: white; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.3s;">黄阶</button>
+                        <button class="technique-tab-btn" data-grade="玄阶" onclick="window.switchTechniqueTab('玄阶')" style="padding: 10px 20px; background: rgba(65, 105, 225, 0.5); border: none; border-radius: 5px; color: white; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.3s;">玄阶</button>
+                        <button class="technique-tab-btn" data-grade="地阶" onclick="window.switchTechniqueTab('地阶')" style="padding: 10px 20px; background: rgba(147, 112, 219, 0.5); border: none; border-radius: 5px; color: white; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.3s;">地阶</button>
+                        <button class="technique-tab-btn" data-grade="天阶" onclick="window.switchTechniqueTab('天阶')" style="padding: 10px 20px; background: rgba(255, 215, 0, 0.5); border: none; border-radius: 5px; color: white; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.3s;">天阶</button>
+                    </div>
+                    <div id="technique-list" style="width: 100%;">
+                        <!-- Technique Items will be injected by JS -->
+                    </div>
+                </div>
+                <button id="btn-back-lobby-technique" style="margin-top: 20px; background-color: #607D8B;">返回大厅</button>
             </div>
 
             <div id="formation-screen" class="screen hidden">
