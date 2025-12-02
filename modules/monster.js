@@ -7,6 +7,7 @@ import { handleVictory, handleGameOver } from './gameLogic.js';
 import { getScaledKillRequirement } from './levelUtils.js';
 import { gainSoulFromKill } from './affixSystem.js';
 import { getPlayerStats } from './playerStats.js';
+import { calculateDamageAfterDefense } from './utils.js';
 
 export function updateSpawning(timestamp) {
     const config = levelConfig[state.currentLevel] || levelConfig[1];
@@ -192,7 +193,7 @@ export function updateMonsters(timestamp, dt) {
         if (dist < state.player.radius + m.radius) {
             if (timestamp - state.player.lastHitTime > 1000) {
                 const stats = getPlayerStats();
-                const actualDamage = Math.max(1, m.damage - (stats.defense || 0));
+                const actualDamage = calculateDamageAfterDefense(m.damage, stats.defense);
                 takeDamage(actualDamage);
                 state.player.lastHitTime = timestamp;
                 state.floatingTexts.push({
@@ -241,9 +242,12 @@ export function monsterAttack(monster, weapon, timestamp) {
         }
 
         const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist <= weapon.range + state.player.radius) {
-             const actualDamage = Math.max(1, (monster.damage * weapon.damageMultiplier) - state.player.defense);
-             takeDamage(actualDamage);
+           if (dist <= weapon.range + state.player.radius) {
+               const stats = getPlayerStats();
+               const weaponDamageMultiplier = weapon.damageMultiplier || 1;
+               const baseDamage = monster.damage * weaponDamageMultiplier;
+               const actualDamage = calculateDamageAfterDefense(baseDamage, stats.defense);
+               takeDamage(actualDamage);
              state.floatingTexts.push({
                 x: state.player.x,
                 y: state.player.y - 20,
@@ -255,6 +259,7 @@ export function monsterAttack(monster, weapon, timestamp) {
         }
     } else {
         const bulletSpeed = 240; // 4 * 60
+        const weaponDamageMultiplier = weapon.damageMultiplier || 1;
         const vx = Math.cos(angle) * bulletSpeed;
         const vy = Math.sin(angle) * bulletSpeed;
         state.bullets.push({
@@ -266,7 +271,7 @@ export function monsterAttack(monster, weapon, timestamp) {
             radius: 5,
             color: 'red',
             penetration: 0,
-            damage: monster.damage * weapon.damageMultiplier,
+            damage: monster.damage * weaponDamageMultiplier,
             hitIds: [],
             isEnemy: true
         });

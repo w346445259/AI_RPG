@@ -80,3 +80,21 @@ export function getNearestMonsterExcluding(x, y, excludeIds) {
     }
     return nearest;
 }
+
+const DEFENSE_SOFT_CAP = 400;
+
+// 计算当前防御对应的百分比减伤
+export function calculateDefenseReductionPercent(defenseValue) {
+    const defense = Math.max(0, defenseValue || 0);
+    const reduction = defense / (defense + DEFENSE_SOFT_CAP);
+    return reduction * 100;
+}
+
+// 防御力减伤：采用非线性百分比，随着防御提升逐渐逼近100%但永远不会达到
+export function calculateDamageAfterDefense(baseDamage, defenseValue) {
+    if (baseDamage <= 0) return 0;
+    const reductionPercent = calculateDefenseReductionPercent(defenseValue);
+    const reductionRatio = reductionPercent / 100;
+    const reducedDamage = baseDamage * (1 - reductionRatio);
+    return Math.max(1, Math.round(reducedDamage));
+}

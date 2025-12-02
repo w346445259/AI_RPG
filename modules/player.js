@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { getNearestMonster } from './utils.js';
+import { getNearestMonster, calculateDamageAfterDefense } from './utils.js';
 import { getPlayerStats } from './ui.js';
 import { handleMonsterDeath } from './monster.js';
 import { getActiveWeaponConfig } from './weaponUtils.js';
@@ -218,7 +218,7 @@ export function updateShooting(timestamp) {
 
                     targetsToHit.forEach(t => {
                         const { damage, isCrit } = rollCriticalDamage(baseDamage, stats);
-                        const actualDamage = Math.max(1, damage - (t.defense || 0));
+                        const actualDamage = calculateDamageAfterDefense(damage, t.defense);
                         t.hp -= actualDamage;
                         pushDamageFloatingText(t, actualDamage, isCrit);
 

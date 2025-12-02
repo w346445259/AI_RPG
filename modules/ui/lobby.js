@@ -7,6 +7,7 @@ import { showNotification } from './common.js';
 import { bodyRefiningConfig, realmBaseConfig, qiCondensationConfig, bodyStrengtheningConfig } from '../../config/cultivationConfig.js';
 import { formationConfig } from '../../config/formationConfig.js';
 import { techniqueConfig } from '../../config/techniqueConfig.js';
+import { calculateDefenseReductionPercent } from '../utils.js';
 
 // UI Elements
 const spiritStonesDisplay = document.getElementById('gold-display');
@@ -374,7 +375,8 @@ function showStatDetails(stat) {
             msg = `【悟性】: ${stats.comprehension}。影响功法修炼成功率，每点悟性提供10%的基础成功率。`;
             break;
         case 'defense':
-            msg = `【防御】: ${stats.defense}。直接减少受到的伤害点数。`;
+            const reductionPercent = calculateDefenseReductionPercent(stats.defense);
+            msg = `【防御】: ${stats.defense}。直接减少受到的伤害点数，当前减伤: ${reductionPercent.toFixed(1)}%。`;
             break;
         case 'spiritualPower':
             msg = `【灵力】: ${stats.spiritualPower}。每点灵力增加10点法力上限和0.1点/秒法力回复。`;

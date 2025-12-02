@@ -2,7 +2,7 @@ export const monsterConfig = {
     // ID: 怪物属性
     1: {
         name: '游荡傀儡',
-        hp: 40, // 削弱血量，避免初期过于刮痧
+        hp: 20, // 削弱血量，避免初期过于刮痧
         speed: 100, // 稍慢
         radius: 20,
         color: '#81C784', // 浅绿色
